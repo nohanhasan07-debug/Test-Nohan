@@ -4,15 +4,17 @@ export default {
   theme: {
     extend: {
       colors: {
+        // Named by role, not lightness: `ink` is the page and surface color, `paper` the text color.
+        white: '#2A0A10',
         ink: {
-          950: '#2A0A10',
-          900: '#3A0F18',
-          800: '#4D1622',
-          700: '#6A2231',
+          950: '#FBF8F3',
+          900: '#F3ECE2',
+          800: '#EAE0D2',
+          700: '#DCCFBE',
         },
-        paper: '#F3E9D8',
-        neon: { DEFAULT: '#D4A84B', light: '#E6C27A', dark: '#B88A34' },
-        loss: '#FF5C6C',
+        paper: '#2A0A10',
+        neon: { DEFAULT: '#9A6B1F', light: '#B8842E', dark: '#7A5214' },
+        loss: '#B3212F',
       },
       fontFamily: {
         display: ['"Playfair Display"', 'Georgia', 'serif'],
