@@ -1,0 +1,201 @@
+import { useMemo, useState } from 'react';
+import { Plus, RotateCw } from 'lucide-react';
+import Header, { type AppView } from '@/components/Header';
+import MatchFormModal from '@/components/MatchFormModal';
+import MatchHistoryView from '@/components/MatchHistoryView';
+import PerformancePage from '@/components/PerformancePage';
+import PotmCard from '@/components/PotmCard';
+import SeasonFilter, { type SeasonMode } from '@/components/SeasonFilter';
+import SettingsModal from '@/components/SettingsModal';
+import StandingsView from '@/components/StandingsView';
+import TabSwitcher from '@/components/TabSwitcher';
+import WinRateView from '@/components/WinRateView';
+import { primaryButtonClass } from '@/components/formStyles';
+import { useClubData } from '@/hooks/useClubData';
+import { getErrorMessage } from '@/lib/errors';
+import { getMonthKey, getSeasonKey, getSeasonLabel, toIsoDate } from '@/lib/date';
+import {
+  computeStats,
+  findPlayerOfMonth,
+  getArchiveSeasons,
+  matchesInView,
+  sortByWinRate,
+  sortStandings,
+  type SeasonView,
+} from '@/lib/stats';
+import type { LeaderboardTab, Match, MatchInput, Profile } from '@/types';
+
+interface LeaderboardPageProps {
+  profile: Profile;
+  onSignOut: () => void;
+}
+
+export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageProps) {
+  const { players, matches, loaded, loadError, reload, addPlayer, linkPlayer, saveMatch, deleteMatch } =
+    useClubData();
+  const isMaster = profile.role === 'master';
+  const [view, setView] = useState<AppView>('leaderboard');
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [tab, setTab] = useState<LeaderboardTab>('standings');
+  const [seasonMode, setSeasonMode] = useState<SeasonMode>('active');
+  const [archiveKey, setArchiveKey] = useState('');
+  const [formState, setFormState] = useState<{ match?: Match } | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+
+  const today = useMemo(() => new Date(), []);
+  const todayIso = toIsoDate(today);
+  const activeKey = getSeasonKey(todayIso);
+  const monthKey = getMonthKey(todayIso);
+
+  const archiveSeasons = getArchiveSeasons(matches, activeKey);
+  const resolvedArchiveKey = archiveSeasons.includes(archiveKey) ? archiveKey : (archiveSeasons[0] ?? '');
+
+  const seasonView: SeasonView =
+    seasonMode === 'all'
+      ? { kind: 'all' }
+      : { kind: 'season', key: seasonMode === 'archive' ? resolvedArchiveKey : activeKey };
+
+  const viewMatches = matchesInView(matches, seasonView);
+  const standings = sortStandings(computeStats(players, viewMatches));
+  const winRanking = sortByWinRate(computeStats(players, viewMatches));
+  const potm = useMemo(() => findPlayerOfMonth(players, matches, monthKey), [players, matches, monthKey]);
+  const playerNames = useMemo(() => new Map(players.map((player) => [player.id, player.name])), [players]);
+  const linkedPlayer = useMemo(
+    () => players.find((player) => player.profileId === profile.id) ?? null,
+    [players, profile.id],
+  );
+
+  const ready = loaded && !loadError;
+
+  const handleDelete = async (match: Match) => {
+    if (!window.confirm('Hapus pertandingan ini dari riwayat dan klasemen?')) return;
+    try {
+      await deleteMatch(match.id);
+      setActionError(null);
+    } catch (error) {
+      setActionError(getErrorMessage(error));
+    }
+  };
+
+  const handleSaveMatch = async (input: MatchInput) => {
+    await saveMatch(input, formState?.match?.id);
+    setFormState(null);
+  };
+
+  const isEmptyArchive = seasonMode === 'archive' && archiveSeasons.length === 0;
+
+  return (
+    <div className="min-h-screen">
+      <Header
+        displayName={profile.displayName}
+        isMaster={isMaster}
+        view={view}
+        onChangeView={setView}
+        onOpenSettings={() => setSettingsOpen(true)}
+        onSignOut={onSignOut}
+      />
+
+      <main className="mx-auto max-w-5xl px-4 pb-32 pt-6 md:px-8 md:pt-10">
+        {!loaded && (
+          <p className="py-16 text-center text-sm font-semibold uppercase tracking-[0.2em] text-maroon/70">
+            Memuat data klub...
+          </p>
+        )}
+
+        {loaded && loadError && (
+          <div className="flex flex-col items-center gap-4 rounded-2xl border-2 border-clay/40 bg-cream-dark p-8 text-center">
+            <p className="font-display text-lg font-bold">Data klub tidak bisa dimuat</p>
+            <p role="alert" className="text-sm text-maroon/80">{loadError}</p>
+            <button type="button" onClick={() => void reload()} className={primaryButtonClass}>
+              <RotateCw className="h-4 w-4" aria-hidden="true" />
+              Coba Lagi
+            </button>
+          </div>
+        )}
+
+        {ready && view === 'performance' && (
+          <PerformancePage player={linkedPlayer} players={players} matches={matches} />
+        )}
+
+        {ready && view === 'leaderboard' && (
+          <>
+            <PotmCard player={potm} monthKey={monthKey} />
+
+            <section className="mt-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <TabSwitcher tab={tab} onChange={setTab} />
+              <SeasonFilter
+                mode={seasonMode}
+                onModeChange={setSeasonMode}
+                activeKey={activeKey}
+                archiveKey={resolvedArchiveKey}
+                archiveSeasons={archiveSeasons}
+                onArchiveChange={setArchiveKey}
+              />
+            </section>
+
+            <p className="mt-4 text-xs font-semibold uppercase tracking-[0.2em] text-maroon/70">
+              {seasonMode === 'all' ? 'All-Time' : getSeasonLabel(seasonView.kind === 'season' ? seasonView.key : activeKey)}
+            </p>
+
+            {actionError && (
+              <p role="alert" className="mt-4 rounded-xl border border-clay/40 bg-clay/10 px-4 py-3 text-sm font-semibold text-clay">
+                {actionError}
+              </p>
+            )}
+
+            <div key={`${tab}-${seasonMode}-${resolvedArchiveKey}`} className="animate-fade-up mt-4">
+              {isEmptyArchive ? (
+                <div className="rounded-2xl border-2 border-dashed border-maroon/30 bg-cream-dark p-8 text-center">
+                  <p className="font-display text-lg font-bold">Hall of Fame masih kosong</p>
+                  <p className="mt-1 text-sm text-maroon/80">Arsip akan muncul setelah season berganti.</p>
+                </div>
+              ) : tab === 'standings' ? (
+                <StandingsView standings={standings} />
+              ) : tab === 'winrate' ? (
+                <WinRateView ranking={winRanking} />
+              ) : (
+                <MatchHistoryView
+                  matches={viewMatches}
+                  playerNames={playerNames}
+                  isMaster={isMaster}
+                  onEdit={(match) => setFormState({ match })}
+                  onDelete={handleDelete}
+                />
+              )}
+            </div>
+          </>
+        )}
+      </main>
+
+      {ready && view === 'leaderboard' && (
+        <button
+          type="button"
+          onClick={() => setFormState({})}
+          className="fixed bottom-6 right-5 z-40 inline-flex items-center gap-2 rounded-full bg-gold px-5 py-4 font-semibold text-maroon-dark shadow-xl ring-4 ring-cream transition hover:-translate-y-1 hover:bg-gold-light active:scale-95 md:bottom-10 md:right-10"
+        >
+          <Plus className="h-5 w-5" aria-hidden="true" />
+          Log Match
+        </button>
+      )}
+
+      {formState && (
+        <MatchFormModal
+          players={players}
+          initial={formState.match}
+          onSubmit={handleSaveMatch}
+          onClose={() => setFormState(null)}
+        />
+      )}
+
+      {settingsOpen && isMaster && (
+        <SettingsModal
+          currentUserId={profile.id}
+          players={players}
+          onAddPlayer={addPlayer}
+          onLinkPlayer={linkPlayer}
+          onClose={() => setSettingsOpen(false)}
+        />
+      )}
+    </div>
+  );
+}
