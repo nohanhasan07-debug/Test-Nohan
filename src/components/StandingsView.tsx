@@ -1,5 +1,5 @@
 import RankBadge from '@/components/RankBadge';
-import { FormDots, HotStreakBadge } from '@/components/FormIndicators';
+import { FormDots, FormLegend, HotStreakBadge } from '@/components/FormIndicators';
 import type { PlayerForm } from '@/lib/form';
 import type { PlayerStats } from '@/types';
 
@@ -15,6 +15,7 @@ export default function StandingsView({ standings, form }: StandingsViewProps) {
 
   return (
     <div>
+      <FormLegend />
       <ul className="flex flex-col gap-3 md:hidden">
         {standings.map((entry, index) => {
           const isTop = index === 0;
