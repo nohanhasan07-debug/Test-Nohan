@@ -1,12 +1,13 @@
-import { Activity, LayoutList, LogOut, Settings } from 'lucide-react';
+import { Activity, ClipboardCheck, LayoutList, LogOut, Settings } from 'lucide-react';
 import ClubLogo from '@/components/ClubLogo';
 import CourtLines from '@/components/CourtLines';
 
-export type AppView = 'leaderboard' | 'performance';
+export type AppView = 'leaderboard' | 'performance' | 'approvals';
 
 interface HeaderProps {
   displayName: string;
   isMaster: boolean;
+  pendingCount: number;
   view: AppView;
   onChangeView: (view: AppView) => void;
   onOpenSettings: () => void;
@@ -16,12 +17,14 @@ interface HeaderProps {
 export default function Header({
   displayName,
   isMaster,
+  pendingCount,
   view,
   onChangeView,
   onOpenSettings,
   onSignOut,
 }: HeaderProps) {
   const isPerformance = view === 'performance';
+  const isApprovals = view === 'approvals';
   const ViewIcon = isPerformance ? LayoutList : Activity;
   return (
     <header className="relative overflow-hidden border-b-4 border-neon bg-ink-900 text-paper">
@@ -50,6 +53,22 @@ export default function Header({
             <ViewIcon className="h-4 w-4 text-neon" aria-hidden="true" />
             <span className="hidden sm:inline">{isPerformance ? 'Klasemen' : 'Performa Saya'}</span>
           </button>
+          {isMaster && (
+            <button
+              type="button"
+              onClick={() => onChangeView(isApprovals ? 'leaderboard' : 'approvals')}
+              aria-pressed={isApprovals}
+              className="inline-flex items-center gap-2 rounded-full border-2 border-neon/70 px-3 py-2 text-sm font-semibold text-paper transition hover:border-neon hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-neon"
+            >
+              <ClipboardCheck className="h-4 w-4 text-neon" aria-hidden="true" />
+              <span className="hidden sm:inline">Persetujuan</span>
+              {pendingCount > 0 && (
+                <span className="rounded-full bg-neon px-1.5 text-[11px] font-bold leading-5 text-ink-950">
+                  {pendingCount}
+                </span>
+              )}
+            </button>
+          )}
           {isMaster && (
             <button
               type="button"

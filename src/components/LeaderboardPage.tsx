@@ -1,9 +1,11 @@
 import { useMemo, useState } from 'react';
 import { RotateCw } from 'lucide-react';
+import ApprovalsView from '@/components/ApprovalsView';
 import Header, { type AppView } from '@/components/Header';
 import HeadToHeadView from '@/components/HeadToHeadView';
 import MatchFormModal from '@/components/MatchFormModal';
 import MatchHistoryView from '@/components/MatchHistoryView';
+import MySubmissionsCard from '@/components/MySubmissionsCard';
 import PerformancePage from '@/components/PerformancePage';
 import PotmCard from '@/components/PotmCard';
 import SeasonFilter, { type SeasonMode } from '@/components/SeasonFilter';
@@ -34,9 +36,14 @@ interface LeaderboardPageProps {
 }
 
 export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageProps) {
-  const { players, matches, loaded, loadError, reload, addPlayer, linkPlayer, saveMatch, deleteMatch } =
+  const { players, matches, reviewMatches, loaded, loadError, reload, addPlayer, linkPlayer, saveMatch, approveOrRejectMatch, deleteMatch } =
     useClubData();
   const isMaster = profile.role === 'master';
+  const pendingMatches = useMemo(() => reviewMatches.filter((match) => match.status === 'pending'), [reviewMatches]);
+  const mySubmissions = useMemo(
+    () => reviewMatches.filter((match) => match.createdBy === profile.id),
+    [reviewMatches, profile.id],
+  );
   const [view, setView] = useState<AppView>('leaderboard');
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [tab, setTab] = useState<LeaderboardTab>('standings');
@@ -44,6 +51,7 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
   const [archiveKey, setArchiveKey] = useState('');
   const [formState, setFormState] = useState<{ match?: Match } | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [submitNotice, setSubmitNotice] = useState<string | null>(null);
 
   const today = useMemo(() => new Date(), []);
   const todayIso = toIsoDate(today);
@@ -85,8 +93,10 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
   };
 
   const handleSaveMatch = async (input: MatchInput) => {
-    await saveMatch(input, formState?.match?.id);
+    const matchId = formState?.match?.id;
+    await saveMatch(input, { matchId, status: isMaster ? 'approved' : 'pending' });
     setFormState(null);
+    setSubmitNotice(matchId || isMaster ? null : 'Pertandingan terkirim dan menunggu persetujuan master.');
   };
 
   const isEmptyArchive = tab !== 'h2h' && seasonMode === 'archive' && archiveSeasons.length === 0;
@@ -96,6 +106,7 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
       <Header
         displayName={profile.displayName}
         isMaster={isMaster}
+        pendingCount={pendingMatches.length}
         view={view}
         onChangeView={setView}
         onOpenSettings={() => setSettingsOpen(true)}
@@ -124,9 +135,19 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
           <PerformancePage player={linkedPlayer} players={players} matches={matches} />
         )}
 
+        {ready && view === 'approvals' && isMaster && (
+          <ApprovalsView matches={pendingMatches} playerNames={playerNames} onReview={approveOrRejectMatch} />
+        )}
+
         {ready && view === 'leaderboard' && (
           <>
             <PotmCard player={potm} monthKey={monthKey} />
+
+            {!isMaster && mySubmissions.length > 0 && (
+              <div className="mt-8">
+                <MySubmissionsCard matches={mySubmissions} playerNames={playerNames} />
+              </div>
+            )}
 
             <section className="mt-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <TabSwitcher tab={tab} onChange={setTab} />
@@ -145,6 +166,12 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
             {tab !== 'h2h' && (
               <p className="mt-4 text-xs font-semibold uppercase tracking-[0.2em] text-paper/70">
                 {seasonMode === 'all' ? 'All-Time' : getSeasonLabel(seasonView.kind === 'season' ? seasonView.key : activeKey)}
+              </p>
+            )}
+
+            {submitNotice && (
+              <p role="status" className="mt-4 rounded-xl border border-neon/50 bg-neon/10 px-4 py-3 text-sm font-semibold text-paper">
+                {submitNotice}
               </p>
             )}
 

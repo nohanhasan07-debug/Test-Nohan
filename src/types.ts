@@ -17,6 +17,8 @@ export interface Player {
   profileId: string | null;
 }
 
+export type MatchStatus = 'pending' | 'approved' | 'rejected';
+
 export interface Match {
   id: string;
   date: string;
@@ -25,9 +27,11 @@ export interface Match {
   teamB: string[];
   gamesA: number;
   gamesB: number;
+  status: MatchStatus;
+  createdBy: string | null;
 }
 
-export type MatchInput = Omit<Match, 'id'>;
+export type MatchInput = Pick<Match, 'date' | 'format' | 'teamA' | 'teamB' | 'gamesA' | 'gamesB'>;
 
 export interface PlayerStats {
   playerId: string;

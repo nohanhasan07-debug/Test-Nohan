@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase';
-import type { Match, MatchFormat, MatchInput, Player } from '@/types';
+import type { Match, MatchFormat, MatchInput, MatchStatus, Player } from '@/types';
 
 interface PlayerRow {
   id: string;
@@ -15,6 +15,8 @@ interface MatchRow {
   team_b: string[];
   games_a: number;
   games_b: number;
+  approval_status: MatchStatus;
+  created_by: string | null;
 }
 
 const LOAD_ERROR = 'Data klub tidak bisa dimuat. Coba lagi.';
@@ -35,6 +37,8 @@ const toMatch = (row: MatchRow): Match => ({
   teamB: row.team_b,
   gamesA: row.games_a,
   gamesB: row.games_b,
+  status: row.approval_status,
+  createdBy: row.created_by,
 });
 
 const toMatchRow = (input: MatchInput) => ({
@@ -58,7 +62,7 @@ export async function fetchPlayers(): Promise<Player[]> {
 export async function fetchMatches(): Promise<Match[]> {
   const { data, error } = await supabase
     .from('club_matches')
-    .select('id, match_date, format, team_a, team_b, games_a, games_b')
+    .select('id, match_date, format, team_a, team_b, games_a, games_b, approval_status, created_by')
     .order('match_date', { ascending: false });
   if (error || !data) throw new Error(LOAD_ERROR);
   return (data as MatchRow[]).map(toMatch);
@@ -79,8 +83,17 @@ export async function linkPlayerToProfile(playerId: string, profileId: string | 
   if (error) throw new Error(SAVE_ERROR);
 }
 
-export async function insertMatch(input: MatchInput): Promise<void> {
-  const { error } = await supabase.from('club_matches').insert(toMatchRow(input));
+export async function insertMatch(input: MatchInput, status: 'pending' | 'approved'): Promise<void> {
+  const { error } = await supabase.from('club_matches').insert({ ...toMatchRow(input), approval_status: status });
+  if (error) throw new Error(SAVE_ERROR);
+}
+
+export async function reviewMatch(matchId: string, status: 'approved' | 'rejected'): Promise<void> {
+  const { error } = await supabase
+    .from('club_matches')
+    .update({ approval_status: status })
+    .eq('id', matchId)
+    .eq('approval_status', 'pending');
   if (error) throw new Error(SAVE_ERROR);
 }
 
