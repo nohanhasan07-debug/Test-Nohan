@@ -57,7 +57,7 @@ export default function SeasonFilter({
             <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-maroon" aria-hidden="true" />
           </div>
         ) : (
-          <p className="text-sm text-maroon/80">Belum ada arsip season.</p>
+          <p className="text-sm text-maroon-dark/75">Belum ada arsip season.</p>
         ))}
     </div>
   );

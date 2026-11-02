@@ -7,7 +7,7 @@
 @layer base {
   body {
     @apply bg-cream text-maroon-dark font-sans antialiased;
-    background-image: radial-gradient(rgba(61, 12, 21, 0.05) 1px, transparent 1px);
+    background-image: radial-gradient(rgba(181, 72, 44, 0.07) 1px, transparent 1px);
     background-size: 16px 16px;
   }
 }

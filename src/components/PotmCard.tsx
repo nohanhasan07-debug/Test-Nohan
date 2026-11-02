@@ -1,4 +1,5 @@
 import { Crown } from 'lucide-react';
+import CourtLines from '@/components/CourtLines';
 import { POTM_MIN_MATCHES } from '@/lib/constants';
 import { formatMonthLabel } from '@/lib/date';
 import type { PlayerStats } from '@/types';
@@ -14,11 +15,11 @@ export default function PotmCard({ player, monthKey }: PotmCardProps) {
   if (!player) {
     return (
       <section className="animate-fade-up rounded-2xl border-2 border-dashed border-maroon/30 bg-cream-dark p-6 text-center">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-maroon/70">
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-maroon-dark/75">
           Player of the Month · {monthLabel}
         </p>
         <p className="mt-2 font-display text-lg font-bold text-maroon">Belum ada pemenang bulan ini</p>
-        <p className="mt-1 text-sm text-maroon/80">
+        <p className="mt-1 text-sm text-maroon-dark/75">
           Pemain perlu minimal {POTM_MIN_MATCHES} pertandingan di bulan ini untuk masuk penilaian.
         </p>
       </section>
@@ -26,8 +27,8 @@ export default function PotmCard({ player, monthKey }: PotmCardProps) {
   }
 
   return (
-    <section className="animate-fade-up relative overflow-hidden rounded-2xl border-2 border-maroon bg-gold p-6 text-maroon-dark shadow-lg md:p-8">
-      <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full border-[14px] border-maroon/10" />
+      <section className="animate-fade-up relative overflow-hidden rounded-2xl border-2 border-maroon bg-gold p-6 text-maroon-dark shadow-lg md:p-8">
+      <CourtLines className="text-maroon/20" />
       <div className="relative flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-4">
           <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-maroon text-gold">

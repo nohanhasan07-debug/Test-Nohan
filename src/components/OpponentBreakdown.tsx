@@ -10,7 +10,7 @@ export default function OpponentBreakdown({ opponents, nameOf }: OpponentBreakdo
     return (
       <div className="rounded-2xl border-2 border-dashed border-maroon/30 bg-cream-dark p-8 text-center">
         <p className="font-display text-lg font-bold">Belum ada pertandingan</p>
-        <p className="mt-1 text-sm text-maroon/80">Rekor melawan tiap pemain akan muncul setelah match tercatat.</p>
+        <p className="mt-1 text-sm text-maroon-dark/75">Rekor melawan tiap pemain akan muncul setelah match tercatat.</p>
       </div>
     );
   }
@@ -24,7 +24,7 @@ export default function OpponentBreakdown({ opponents, nameOf }: OpponentBreakdo
         >
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <p className="text-xs font-semibold uppercase tracking-wider text-maroon/70">Anda vs</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-maroon-dark/75">Anda vs</p>
               <p className="truncate font-display text-xl font-bold">{nameOf(opponent.playerId)}</p>
             </div>
             <p className="shrink-0 rounded-full bg-maroon px-3 py-1 text-xs font-semibold text-cream">
@@ -43,12 +43,12 @@ export default function OpponentBreakdown({ opponents, nameOf }: OpponentBreakdo
             </div>
             <div className="rounded-xl bg-maroon/5 py-2">
               <p className="font-display text-lg font-bold text-maroon">{opponent.draws}</p>
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-maroon/80">Seri</p>
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-maroon-dark/75">Seri</p>
             </div>
           </div>
 
           <div className="mt-4">
-            <div className="flex items-baseline justify-between text-xs font-semibold text-maroon/80">
+            <div className="flex items-baseline justify-between text-xs font-semibold text-maroon-dark/75">
               <span>Peluang menang berikutnya</span>
               <span className="font-display text-base font-bold text-maroon-dark">{opponent.winRate}%</span>
             </div>
@@ -58,7 +58,7 @@ export default function OpponentBreakdown({ opponents, nameOf }: OpponentBreakdo
                 style={{ width: `${opponent.winRate}%` }}
               />
             </div>
-            <p className="mt-2 text-[11px] text-maroon/70">Dihitung dari hasil pertandingan Anda melawan pemain ini.</p>
+            <p className="mt-2 text-[11px] text-maroon-dark/75">Dihitung dari hasil pertandingan Anda melawan pemain ini.</p>
           </div>
         </li>
       ))}

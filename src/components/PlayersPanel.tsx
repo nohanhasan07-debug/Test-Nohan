@@ -65,7 +65,7 @@ export default function PlayersPanel({ players, onAddPlayer, onLinkPlayer }: Pla
     <div className="flex flex-col gap-6">
       <section>
         <h3 className="font-display text-lg font-bold">Tambah Pemain Baru</h3>
-        <p className="mt-1 text-sm text-maroon/80">Pemain baru bisa dipilih saat mencatat match.</p>
+        <p className="mt-1 text-sm text-maroon-dark/75">Pemain baru bisa dipilih saat mencatat match.</p>
         <form onSubmit={handleAdd} className="mt-3 flex flex-col gap-3 sm:flex-row">
           <input
             aria-label="Nama pemain baru"
@@ -85,7 +85,7 @@ export default function PlayersPanel({ players, onAddPlayer, onLinkPlayer }: Pla
 
       <section className="border-t-2 border-maroon/15 pt-5">
         <h3 className="font-display text-lg font-bold">Daftar Pemain ({players.length})</h3>
-        <p className="mt-1 text-sm text-maroon/80">
+        <p className="mt-1 text-sm text-maroon-dark/75">
           Hubungkan setiap pemain ke akun login agar pemain bisa melihat Performa Saya.
         </p>
         {profilesError && <p role="alert" className={`mt-2 ${errorTextClass}`}>{profilesError}</p>}

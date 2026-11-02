@@ -10,7 +10,7 @@ export default function WinRateView({ ranking }: WinRateViewProps) {
     return (
       <div className="rounded-2xl border-2 border-dashed border-maroon/30 bg-cream-dark p-8 text-center">
         <p className="font-display text-lg font-bold">Belum ada data win rate</p>
-        <p className="mt-1 text-sm text-maroon/80">Win rate muncul setelah pertandingan pertama tercatat.</p>
+        <p className="mt-1 text-sm text-maroon-dark/75">Win rate muncul setelah pertandingan pertama tercatat.</p>
       </div>
     );
   }

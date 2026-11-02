@@ -11,7 +11,7 @@ function App() {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4">
         <ClubLogo className="w-28 animate-pulse ring-4 ring-gold" />
-        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-maroon/70">Memuat...</p>
+        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-maroon-dark/75">Memuat...</p>
       </div>
     );
   }
@@ -25,7 +25,7 @@ function App() {
       <div className="flex min-h-screen items-center justify-center px-4">
         <div className="max-w-md rounded-2xl border-2 border-clay/40 bg-cream p-6 text-center shadow-lg">
           <p className="font-display text-xl font-bold">Akun belum terdaftar</p>
-          <p className="mt-2 text-sm text-maroon/80">
+          <p className="mt-2 text-sm text-maroon-dark/75">
             Akun Anda belum lengkap atau tidak bisa dimuat. Hubungi master admin klub.
           </p>
           <button type="button" onClick={signOut} className={`${secondaryButtonClass} mt-5`}>

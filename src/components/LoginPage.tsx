@@ -1,6 +1,8 @@
 import { useState, type FormEvent } from 'react';
 import { Eye, EyeOff, LogIn } from 'lucide-react';
 import ClubLogo from '@/components/ClubLogo';
+import CourtLines from '@/components/CourtLines';
+import TennisBall from '@/components/TennisBall';
 import { inputClass } from '@/components/formStyles';
 
 interface LoginPageProps {
@@ -38,16 +40,18 @@ export default function LoginPage({ onSignIn }: LoginPageProps) {
           <p className="mt-6 font-display text-2xl font-bold tracking-wide text-maroon-dark md:text-3xl">
             PANIC AT THE COURT
           </p>
-          <p className="mt-1 text-xs uppercase tracking-[0.25em] text-maroon/70">Tennis Club Leaderboard</p>
+          <p className="mt-1 text-xs uppercase tracking-[0.25em] text-maroon-dark/75">Tennis Club Leaderboard</p>
         </div>
 
         <form
           onSubmit={handleSubmit}
-          className="mt-8 flex flex-col gap-5 rounded-3xl border-2 border-maroon bg-cream p-6 shadow-xl md:p-8"
+          className="relative mt-8 flex flex-col gap-5 overflow-hidden rounded-3xl border-2 border-maroon bg-cream p-6 shadow-xl md:p-8"
         >
-          <div className="text-center">
+          <CourtLines className="text-maroon/10" />
+          <div className="relative text-center">
+            <TennisBall className="mx-auto mb-2 h-10 w-10 text-gold-dark" />
             <h1 className="font-display text-xl font-bold">Masuk ke Klub</h1>
-            <p className="mt-1 text-sm text-maroon/80">Akun dibuat oleh master admin klub.</p>
+            <p className="mt-1 text-sm text-maroon-dark/75">Akun dibuat oleh master admin klub.</p>
           </div>
 
           <div>

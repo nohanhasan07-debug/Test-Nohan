@@ -25,7 +25,7 @@ export default function StandingsView({ standings }: StandingsViewProps) {
               <RankBadge rank={index + 1} />
               <div className="min-w-0 flex-1">
                 <p className="truncate font-display text-lg font-bold">{entry.name}</p>
-                <p className="mt-0.5 text-xs font-semibold text-maroon/80">
+                <p className="mt-0.5 text-xs font-semibold text-maroon-dark/75">
                   {entry.mp} main · {entry.w}M {entry.d}S {entry.l}K · GD {formatGd(entry.gd)}
                 </p>
               </div>
@@ -90,7 +90,7 @@ function EmptyMessage() {
   return (
     <div className="rounded-2xl border-2 border-dashed border-maroon/30 bg-cream-dark p-8 text-center">
       <p className="font-display text-lg font-bold">Belum ada pertandingan</p>
-      <p className="mt-1 text-sm text-maroon/80">Tekan tombol + Log Match untuk mencatat hasil pertama.</p>
+      <p className="mt-1 text-sm text-maroon-dark/75">Tekan tombol + Log Match untuk mencatat hasil pertama.</p>
     </div>
   );
 }

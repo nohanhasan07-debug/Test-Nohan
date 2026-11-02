@@ -49,7 +49,7 @@ export default function UserRow({ profile, isSelf, onUpdate, onResetPassword, on
             <span className="truncate">{profile.displayName}</span>
             {isSelf && <span className="rounded-full bg-olive/15 px-2 py-0.5 text-[10px] font-semibold uppercase text-olive">Anda</span>}
           </p>
-          <p className="text-sm text-maroon/80">
+          <p className="text-sm text-maroon-dark/75">
             @{profile.username} ·{' '}
             <span className={`font-semibold ${profile.role === 'master' ? 'text-gold-dark' : 'text-maroon'}`}>
               {profile.role === 'master' ? 'Master Admin' : 'Member'}
@@ -145,7 +145,7 @@ export default function UserRow({ profile, isSelf, onUpdate, onResetPassword, on
 
       {error && <p role="alert" className={`mt-3 ${errorTextClass}`}>{error}</p>}
       {!editing && !resetting && isSelf && (
-        <p className="mt-3 text-xs text-maroon/60">
+        <p className="mt-3 text-xs text-maroon-dark/75">
           Akun Anda sendiri tidak bisa dihapus atau diturunkan perannya.
         </p>
       )}

@@ -90,7 +90,7 @@ export default function CreateUserForm({ onCreate, onCancel }: CreateUserFormPro
         </div>
       </div>
 
-      <p className="text-xs text-maroon/70">
+      <p className="text-xs text-maroon-dark/75">
         Bagikan username dan password ini ke pemain. Jika lupa password, master admin bisa menggantinya dari daftar akun.
       </p>
 

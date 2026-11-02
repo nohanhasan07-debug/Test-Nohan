@@ -28,9 +28,9 @@ export default function PerformancePage({ player, players, matches }: Performanc
   if (!player || !summary) {
     return (
       <div className="animate-fade-up flex flex-col items-center rounded-2xl border-2 border-dashed border-maroon/30 bg-cream-dark p-8 text-center">
-        <UserX className="h-10 w-10 text-maroon/60" aria-hidden="true" />
+        <UserX className="h-10 w-10 text-maroon-dark/75" aria-hidden="true" />
         <p className="mt-3 font-display text-lg font-bold">Akun Anda belum terhubung ke pemain</p>
-        <p className="mt-1 max-w-sm text-sm text-maroon/80">
+        <p className="mt-1 max-w-sm text-sm text-maroon-dark/75">
           Minta master admin menghubungkan akun Anda ke nama pemain lewat Pengaturan, lalu Performa Saya akan menampilkan riwayat Anda.
         </p>
       </div>
@@ -44,7 +44,7 @@ export default function PerformancePage({ player, players, matches }: Performanc
       <section>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-maroon/70">Performa Saya</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-maroon-dark/75">Performa Saya</p>
             <h2 className="mt-1 font-display text-2xl font-bold text-maroon-dark md:text-3xl">{player.name}</h2>
           </div>
           <div

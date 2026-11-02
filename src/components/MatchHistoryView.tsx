@@ -21,7 +21,7 @@ export default function MatchHistoryView({
     return (
       <div className="rounded-2xl border-2 border-dashed border-maroon/30 bg-cream-dark p-8 text-center">
         <p className="font-display text-lg font-bold">Belum ada riwayat pertandingan</p>
-        <p className="mt-1 text-sm text-maroon/80">Pertandingan yang tercatat akan muncul di sini.</p>
+        <p className="mt-1 text-sm text-maroon-dark/75">Pertandingan yang tercatat akan muncul di sini.</p>
       </div>
     );
   }
@@ -41,7 +41,7 @@ export default function MatchHistoryView({
             key={match.id}
             className="rounded-2xl border-2 border-maroon/15 bg-white/70 p-4 shadow-sm transition hover:shadow-md md:p-5"
           >
-            <div className="mb-3 flex items-center justify-between gap-2 text-xs font-semibold uppercase tracking-wider text-maroon/80">
+            <div className="mb-3 flex items-center justify-between gap-2 text-xs font-semibold uppercase tracking-wider text-maroon-dark/75">
               <div className="flex items-center gap-2">
                 <span>{formatDisplayDate(match.date)}</span>
                 <span className="rounded-full bg-maroon px-2 py-0.5 text-[10px] text-cream">

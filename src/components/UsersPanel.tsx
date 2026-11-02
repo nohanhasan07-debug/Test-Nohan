@@ -62,7 +62,7 @@ export default function UsersPanel({ currentUserId }: UsersPanelProps) {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h3 className="font-display text-lg font-bold">Akun Pengguna</h3>
-          <p className="text-sm text-maroon/80">
+          <p className="text-sm text-maroon-dark/75">
             {loadState === 'ready' ? `${profiles.length} akun terdaftar.` : 'Memuat daftar akun...'}
           </p>
         </div>
