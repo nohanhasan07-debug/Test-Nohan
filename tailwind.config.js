@@ -5,13 +5,13 @@ export default {
     extend: {
       colors: {
         ink: {
-          950: '#070707',
-          900: '#0E0E0E',
-          800: '#171717',
-          700: '#262626',
+          950: '#2A0A10',
+          900: '#3A0F18',
+          800: '#4D1622',
+          700: '#6A2231',
         },
-        paper: '#F5F5F2',
-        neon: { DEFAULT: '#C8FF2E', light: '#DDFF70', dark: '#9ACC1F' },
+        paper: '#F3E9D8',
+        neon: { DEFAULT: '#D4A84B', light: '#E6C27A', dark: '#B88A34' },
         loss: '#FF5C6C',
       },
       fontFamily: {
