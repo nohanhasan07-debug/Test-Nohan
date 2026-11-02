@@ -19,9 +19,9 @@ export default function MatchHistoryView({
 }: MatchHistoryViewProps) {
   if (matches.length === 0) {
     return (
-      <div className="rounded-2xl border-2 border-dashed border-maroon/30 bg-cream-dark p-8 text-center">
+      <div className="rounded-2xl border-2 border-dashed border-white/20 bg-white/5 p-8 text-center">
         <p className="font-display text-lg font-bold">Belum ada riwayat pertandingan</p>
-        <p className="mt-1 text-sm text-maroon-dark/75">Pertandingan yang tercatat akan muncul di sini.</p>
+        <p className="mt-1 text-sm text-paper/70">Pertandingan yang tercatat akan muncul di sini.</p>
       </div>
     );
   }
@@ -39,12 +39,12 @@ export default function MatchHistoryView({
         return (
           <li
             key={match.id}
-            className="rounded-2xl border-2 border-maroon/15 bg-white/70 p-4 shadow-sm transition hover:shadow-md md:p-5"
+            className="rounded-2xl border-2 border-white/10 bg-white/5 p-4 shadow-sm transition hover:shadow-md md:p-5"
           >
-            <div className="mb-3 flex items-center justify-between gap-2 text-xs font-semibold uppercase tracking-wider text-maroon-dark/75">
+            <div className="mb-3 flex items-center justify-between gap-2 text-xs font-semibold uppercase tracking-wider text-paper/70">
               <div className="flex items-center gap-2">
                 <span>{formatDisplayDate(match.date)}</span>
-                <span className="rounded-full bg-maroon px-2 py-0.5 text-[10px] text-cream">
+                <span className="rounded-full bg-paper px-2 py-0.5 text-[10px] text-ink-950">
                   {match.format === 'singles' ? 'Singles' : 'Doubles'}
                 </span>
               </div>
@@ -54,7 +54,7 @@ export default function MatchHistoryView({
                     type="button"
                     onClick={() => onEdit(match)}
                     aria-label="Edit pertandingan"
-                    className="rounded-full p-2 text-maroon transition hover:bg-maroon/10"
+                    className="rounded-full p-2 text-paper/80 transition hover:bg-white/10"
                   >
                     <Pencil className="h-4 w-4" aria-hidden="true" />
                   </button>
@@ -62,7 +62,7 @@ export default function MatchHistoryView({
                     type="button"
                     onClick={() => onDelete(match)}
                     aria-label="Hapus pertandingan"
-                    className="rounded-full p-2 text-clay transition hover:bg-clay/10"
+                    className="rounded-full p-2 text-loss transition hover:bg-loss/10"
                   >
                     <Trash2 className="h-4 w-4" aria-hidden="true" />
                   </button>
@@ -73,18 +73,18 @@ export default function MatchHistoryView({
             <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
               <p className={`text-left font-display text-base leading-snug md:text-lg ${teamAWon ? 'font-bold' : ''}`}>
                 {teamNames(match.teamA)}
-                {teamAWon && <span className="ml-2 inline-block rounded bg-gold px-1.5 text-[10px] font-semibold uppercase text-maroon-dark">Menang</span>}
+                {teamAWon && <span className="ml-2 inline-block rounded bg-neon px-1.5 text-[10px] font-semibold uppercase text-ink-950">Menang</span>}
               </p>
-              <div className="rounded-xl bg-maroon px-4 py-2 font-display text-xl font-bold text-cream md:text-2xl">
-                {match.gamesA} <span className="text-gold">-</span> {match.gamesB}
+              <div className="rounded-xl border border-white/10 bg-ink-800 px-4 py-2 font-display text-xl font-bold text-paper md:text-2xl">
+                {match.gamesA} <span className="text-neon">-</span> {match.gamesB}
               </div>
               <p className={`text-right font-display text-base leading-snug md:text-lg ${teamBWon ? 'font-bold' : ''}`}>
-                {teamBWon && <span className="mr-2 inline-block rounded bg-gold px-1.5 text-[10px] font-semibold uppercase text-maroon-dark">Menang</span>}
+                {teamBWon && <span className="mr-2 inline-block rounded bg-neon px-1.5 text-[10px] font-semibold uppercase text-ink-950">Menang</span>}
                 {teamNames(match.teamB)}
               </p>
             </div>
 
-            {isDraw && <p className="mt-3 text-center text-xs font-semibold uppercase tracking-wider text-olive">Seri</p>}
+            {isDraw && <p className="mt-3 text-center text-xs font-semibold uppercase tracking-wider text-paper/70">Seri</p>}
           </li>
         );
       })}

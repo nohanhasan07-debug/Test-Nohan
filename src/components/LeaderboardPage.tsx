@@ -98,15 +98,15 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
 
       <main className="mx-auto max-w-5xl px-4 pb-32 pt-6 md:px-8 md:pt-10">
         {!loaded && (
-          <p className="py-16 text-center text-sm font-semibold uppercase tracking-[0.2em] text-maroon-dark/75">
+          <p className="py-16 text-center text-sm font-semibold uppercase tracking-[0.2em] text-paper/70">
             Memuat data klub...
           </p>
         )}
 
         {loaded && loadError && (
-          <div className="flex flex-col items-center gap-4 rounded-2xl border-2 border-clay/40 bg-cream-dark p-8 text-center">
+          <div className="flex flex-col items-center gap-4 rounded-2xl border-2 border-loss/40 bg-white/5 p-8 text-center">
             <p className="font-display text-lg font-bold">Data klub tidak bisa dimuat</p>
-            <p role="alert" className="text-sm text-maroon-dark/75">{loadError}</p>
+            <p role="alert" className="text-sm text-paper/70">{loadError}</p>
             <button type="button" onClick={() => void reload()} className={primaryButtonClass}>
               <RotateCw className="h-4 w-4" aria-hidden="true" />
               Coba Lagi
@@ -134,21 +134,21 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
               />
             </section>
 
-            <p className="mt-4 text-xs font-semibold uppercase tracking-[0.2em] text-maroon-dark/75">
+            <p className="mt-4 text-xs font-semibold uppercase tracking-[0.2em] text-paper/70">
               {seasonMode === 'all' ? 'All-Time' : getSeasonLabel(seasonView.kind === 'season' ? seasonView.key : activeKey)}
             </p>
 
             {actionError && (
-              <p role="alert" className="mt-4 rounded-xl border border-clay/40 bg-clay/10 px-4 py-3 text-sm font-semibold text-clay">
+              <p role="alert" className="mt-4 rounded-xl border border-loss/40 bg-loss/10 px-4 py-3 text-sm font-semibold text-loss">
                 {actionError}
               </p>
             )}
 
             <div key={`${tab}-${seasonMode}-${resolvedArchiveKey}`} className="animate-fade-up mt-4">
               {isEmptyArchive ? (
-                <div className="rounded-2xl border-2 border-dashed border-maroon/30 bg-cream-dark p-8 text-center">
+                <div className="rounded-2xl border-2 border-dashed border-white/20 bg-white/5 p-8 text-center">
                   <p className="font-display text-lg font-bold">Hall of Fame masih kosong</p>
-                  <p className="mt-1 text-sm text-maroon-dark/75">Arsip akan muncul setelah season berganti.</p>
+                  <p className="mt-1 text-sm text-paper/70">Arsip akan muncul setelah season berganti.</p>
                 </div>
               ) : tab === 'standings' ? (
                 <StandingsView standings={standings} />
@@ -172,7 +172,7 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
         <button
           type="button"
           onClick={() => setFormState({})}
-          className="group fixed bottom-6 right-5 z-40 inline-flex items-center gap-2 rounded-full bg-gold px-5 py-4 font-semibold text-maroon-dark shadow-xl ring-4 ring-cream transition hover:-translate-y-1 hover:bg-gold-light active:scale-95 md:bottom-10 md:right-10"
+          className="group fixed bottom-6 right-5 z-40 inline-flex items-center gap-2 rounded-full bg-neon px-5 py-4 font-semibold text-ink-950 shadow-xl ring-4 ring-ink-950 transition hover:-translate-y-1 hover:bg-neon-light active:scale-95 md:bottom-10 md:right-10"
         >
           <TennisBall className="h-6 w-6 transition duration-500 group-hover:rotate-180" />
           Log Match

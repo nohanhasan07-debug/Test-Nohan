@@ -13,7 +13,7 @@ interface SeasonFilterProps {
 }
 
 const selectClass =
-  'w-full appearance-none rounded-full border-2 border-maroon bg-cream px-4 py-2 pr-10 text-sm font-semibold text-maroon-dark focus:outline-none focus-visible:ring-2 focus-visible:ring-gold sm:w-auto';
+  'w-full appearance-none rounded-full border-2 border-white/20 bg-ink-900 px-4 py-2 pr-10 text-sm font-semibold text-paper focus:outline-none focus-visible:ring-2 focus-visible:ring-neon sm:w-auto';
 
 export default function SeasonFilter({
   mode,
@@ -36,7 +36,7 @@ export default function SeasonFilter({
           <option value="archive">Hall of Fame (Arsip)</option>
           <option value="all">All-Time</option>
         </select>
-        <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-maroon" aria-hidden="true" />
+        <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-paper/80" aria-hidden="true" />
       </div>
 
       {mode === 'archive' &&
@@ -54,10 +54,10 @@ export default function SeasonFilter({
                 </option>
               ))}
             </select>
-            <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-maroon" aria-hidden="true" />
+            <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-paper/80" aria-hidden="true" />
           </div>
         ) : (
-          <p className="text-sm text-maroon-dark/75">Belum ada arsip season.</p>
+          <p className="text-sm text-paper/70">Belum ada arsip season.</p>
         ))}
     </div>
   );

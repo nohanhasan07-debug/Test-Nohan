@@ -19,13 +19,13 @@ export default function StandingsView({ standings }: StandingsViewProps) {
             <li
               key={entry.playerId}
               className={`flex items-center gap-4 rounded-2xl border-2 p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${
-                isTop ? 'border-gold bg-gold text-maroon-dark' : 'border-maroon/15 bg-white/70'
+                isTop ? 'border-neon/60 bg-neon/10 text-paper' : 'border-white/10 bg-white/5'
               }`}
             >
               <RankBadge rank={index + 1} />
               <div className="min-w-0 flex-1">
                 <p className="truncate font-display text-lg font-bold">{entry.name}</p>
-                <p className="mt-0.5 text-xs font-semibold text-maroon-dark/75">
+                <p className="mt-0.5 text-xs font-semibold text-paper/70">
                   {entry.mp} main · {entry.w}M {entry.d}S {entry.l}K · GD {formatGd(entry.gd)}
                 </p>
               </div>
@@ -38,9 +38,9 @@ export default function StandingsView({ standings }: StandingsViewProps) {
         })}
       </ul>
 
-      <div className="hidden overflow-hidden rounded-2xl border-2 border-maroon bg-white/70 shadow-sm md:block">
+      <div className="hidden overflow-hidden rounded-2xl border-2 border-white/15 bg-white/5 shadow-sm md:block">
         <table className="w-full text-left text-sm">
-          <thead className="bg-maroon text-cream">
+          <thead className="bg-white/10 text-paper">
             <tr className="text-xs uppercase tracking-wider">
               <th className="px-4 py-3 font-semibold">#</th>
               <th className="px-4 py-3 font-semibold">Pemain</th>
@@ -58,8 +58,8 @@ export default function StandingsView({ standings }: StandingsViewProps) {
               return (
                 <tr
                   key={entry.playerId}
-                  className={`border-t border-maroon/10 transition hover:bg-maroon/5 ${
-                    isTop ? 'bg-gold/30' : ''
+                  className={`border-t border-white/10 transition hover:bg-white/5 ${
+                    isTop ? 'bg-neon/10' : ''
                   }`}
                 >
                   <td className="px-4 py-3">
@@ -88,9 +88,9 @@ function formatGd(gd: number) {
 
 function EmptyMessage() {
   return (
-    <div className="rounded-2xl border-2 border-dashed border-maroon/30 bg-cream-dark p-8 text-center">
+    <div className="rounded-2xl border-2 border-dashed border-white/20 bg-white/5 p-8 text-center">
       <p className="font-display text-lg font-bold">Belum ada pertandingan</p>
-      <p className="mt-1 text-sm text-maroon-dark/75">Tekan tombol + Log Match untuk mencatat hasil pertama.</p>
+      <p className="mt-1 text-sm text-paper/70">Tekan tombol + Log Match untuk mencatat hasil pertama.</p>
     </div>
   );
 }

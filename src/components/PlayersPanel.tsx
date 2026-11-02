@@ -65,7 +65,7 @@ export default function PlayersPanel({ players, onAddPlayer, onLinkPlayer }: Pla
     <div className="flex flex-col gap-6">
       <section>
         <h3 className="font-display text-lg font-bold">Tambah Pemain Baru</h3>
-        <p className="mt-1 text-sm text-maroon-dark/75">Pemain baru bisa dipilih saat mencatat match.</p>
+        <p className="mt-1 text-sm text-paper/70">Pemain baru bisa dipilih saat mencatat match.</p>
         <form onSubmit={handleAdd} className="mt-3 flex flex-col gap-3 sm:flex-row">
           <input
             aria-label="Nama pemain baru"
@@ -83,9 +83,9 @@ export default function PlayersPanel({ players, onAddPlayer, onLinkPlayer }: Pla
         {error && <p role="alert" className={`mt-2 ${errorTextClass}`}>{error}</p>}
       </section>
 
-      <section className="border-t-2 border-maroon/15 pt-5">
+      <section className="border-t-2 border-white/10 pt-5">
         <h3 className="font-display text-lg font-bold">Daftar Pemain ({players.length})</h3>
-        <p className="mt-1 text-sm text-maroon-dark/75">
+        <p className="mt-1 text-sm text-paper/70">
           Hubungkan setiap pemain ke akun login agar pemain bisa melihat Performa Saya.
         </p>
         {profilesError && <p role="alert" className={`mt-2 ${errorTextClass}`}>{profilesError}</p>}
@@ -93,7 +93,7 @@ export default function PlayersPanel({ players, onAddPlayer, onLinkPlayer }: Pla
           {players.map((player) => (
             <li
               key={player.id}
-              className="flex flex-col gap-2 rounded-xl border-2 border-maroon/15 bg-white/70 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+              className="flex flex-col gap-2 rounded-xl border-2 border-white/10 bg-white/5 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
             >
               <span className="font-display text-base font-bold">{player.name}</span>
               <select

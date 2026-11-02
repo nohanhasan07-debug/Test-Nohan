@@ -62,7 +62,7 @@ export default function UsersPanel({ currentUserId }: UsersPanelProps) {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h3 className="font-display text-lg font-bold">Akun Pengguna</h3>
-          <p className="text-sm text-maroon-dark/75">
+          <p className="text-sm text-paper/70">
             {loadState === 'ready' ? `${profiles.length} akun terdaftar.` : 'Memuat daftar akun...'}
           </p>
         </div>
@@ -78,7 +78,7 @@ export default function UsersPanel({ currentUserId }: UsersPanelProps) {
         <p
           role={notice.tone === 'error' ? 'alert' : 'status'}
           className={`rounded-xl border px-4 py-3 text-sm font-semibold ${
-            notice.tone === 'error' ? 'border-clay/40 bg-clay/10 text-clay' : 'border-olive/40 bg-olive/10 text-olive'
+            notice.tone === 'error' ? 'border-loss/40 bg-loss/10 text-loss' : 'border-neon/40 bg-neon/10 text-neon'
           }`}
         >
           {notice.text}
@@ -88,9 +88,9 @@ export default function UsersPanel({ currentUserId }: UsersPanelProps) {
       {showCreate && <CreateUserForm onCreate={handleCreate} onCancel={() => setShowCreate(false)} />}
 
       {loadState === 'error' && (
-        <div className="rounded-2xl border-2 border-clay/40 bg-clay/10 p-5 text-center">
-          <p className="font-semibold text-clay">Daftar akun tidak bisa dimuat.</p>
-          <button type="button" onClick={load} className="mt-3 text-sm font-semibold text-maroon underline underline-offset-4">
+        <div className="rounded-2xl border-2 border-loss/40 bg-loss/10 p-5 text-center">
+          <p className="font-semibold text-loss">Daftar akun tidak bisa dimuat.</p>
+          <button type="button" onClick={load} className="mt-3 text-sm font-semibold text-paper underline underline-offset-4">
             Coba lagi
           </button>
         </div>

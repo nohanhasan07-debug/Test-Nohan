@@ -36,7 +36,7 @@ export default function CreateUserForm({ onCreate, onCancel }: CreateUserFormPro
   };
 
   return (
-    <form onSubmit={handleSubmit} className="animate-fade-up flex flex-col gap-4 rounded-2xl border-2 border-gold bg-white/70 p-4 md:p-5">
+    <form onSubmit={handleSubmit} className="animate-fade-up flex flex-col gap-4 rounded-2xl border-2 border-white/15 bg-white/5 p-4 md:p-5">
       <p className="font-display text-lg font-bold">Buat Akun Baru</p>
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
@@ -90,12 +90,12 @@ export default function CreateUserForm({ onCreate, onCancel }: CreateUserFormPro
         </div>
       </div>
 
-      <p className="text-xs text-maroon-dark/75">
+      <p className="text-xs text-paper/70">
         Bagikan username dan password ini ke pemain. Jika lupa password, master admin bisa menggantinya dari daftar akun.
       </p>
 
       {error && (
-        <p role="alert" className="rounded-xl border border-clay/40 bg-clay/10 px-4 py-3 text-sm font-semibold text-clay">
+        <p role="alert" className="rounded-xl border border-loss/40 bg-loss/10 px-4 py-3 text-sm font-semibold text-loss">
           {error}
         </p>
       )}

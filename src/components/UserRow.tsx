@@ -42,16 +42,16 @@ export default function UserRow({ profile, isSelf, onUpdate, onResetPassword, on
     });
 
   return (
-    <li className="rounded-2xl border-2 border-maroon/15 bg-white/70 p-4 shadow-sm transition hover:shadow-md">
+    <li className="rounded-2xl border-2 border-white/10 bg-white/5 p-4 shadow-sm transition hover:shadow-md">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="min-w-0">
           <p className="flex flex-wrap items-center gap-2 font-display text-lg font-bold">
             <span className="truncate">{profile.displayName}</span>
-            {isSelf && <span className="rounded-full bg-olive/15 px-2 py-0.5 text-[10px] font-semibold uppercase text-olive">Anda</span>}
+            {isSelf && <span className="rounded-full bg-neon/15 px-2 py-0.5 text-[10px] font-semibold uppercase text-neon">Anda</span>}
           </p>
-          <p className="text-sm text-maroon-dark/75">
+          <p className="text-sm text-paper/70">
             @{profile.username} ·{' '}
-            <span className={`font-semibold ${profile.role === 'master' ? 'text-gold-dark' : 'text-maroon'}`}>
+            <span className={`font-semibold ${profile.role === 'master' ? 'text-neon' : 'text-paper'}`}>
               {profile.role === 'master' ? 'Master Admin' : 'Member'}
             </span>
           </p>
@@ -64,7 +64,7 @@ export default function UserRow({ profile, isSelf, onUpdate, onResetPassword, on
               setResetting(false);
               setError(null);
             }}
-            className="rounded-full border-2 border-maroon px-3 py-1.5 text-sm font-semibold text-maroon transition hover:bg-maroon/10"
+            className="rounded-full border-2 border-paper/30 px-3 py-1.5 text-sm font-semibold text-paper transition hover:bg-white/10"
           >
             Ubah
           </button>
@@ -75,7 +75,7 @@ export default function UserRow({ profile, isSelf, onUpdate, onResetPassword, on
               setEditing(false);
               setError(null);
             }}
-            className="rounded-full border-2 border-maroon px-3 py-1.5 text-sm font-semibold text-maroon transition hover:bg-maroon/10"
+            className="rounded-full border-2 border-paper/30 px-3 py-1.5 text-sm font-semibold text-paper transition hover:bg-white/10"
           >
             Password
           </button>
@@ -84,7 +84,7 @@ export default function UserRow({ profile, isSelf, onUpdate, onResetPassword, on
             onClick={onDelete}
             disabled={isSelf}
             aria-label={`Hapus akun ${profile.username}`}
-            className="rounded-full p-2 text-clay transition hover:bg-clay/10 disabled:cursor-not-allowed disabled:opacity-40"
+            className="rounded-full p-2 text-loss transition hover:bg-loss/10 disabled:cursor-not-allowed disabled:opacity-40"
           >
             <Trash2 className="h-4 w-4" aria-hidden="true" />
           </button>
@@ -92,7 +92,7 @@ export default function UserRow({ profile, isSelf, onUpdate, onResetPassword, on
       </div>
 
       {editing && (
-        <div className="mt-4 grid gap-3 border-t-2 border-maroon/10 pt-4 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+        <div className="mt-4 grid gap-3 border-t-2 border-white/10 pt-4 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
           <div>
             <label htmlFor={`name-${profile.id}`} className={labelClass}>Nama Tampilan</label>
             <input
@@ -123,7 +123,7 @@ export default function UserRow({ profile, isSelf, onUpdate, onResetPassword, on
       )}
 
       {resetting && (
-        <div className="mt-4 grid gap-3 border-t-2 border-maroon/10 pt-4 sm:grid-cols-[1fr_auto] sm:items-end">
+        <div className="mt-4 grid gap-3 border-t-2 border-white/10 pt-4 sm:grid-cols-[1fr_auto] sm:items-end">
           <div>
             <label htmlFor={`pw-${profile.id}`} className={labelClass}>Password Baru</label>
             <input
@@ -145,7 +145,7 @@ export default function UserRow({ profile, isSelf, onUpdate, onResetPassword, on
 
       {error && <p role="alert" className={`mt-3 ${errorTextClass}`}>{error}</p>}
       {!editing && !resetting && isSelf && (
-        <p className="mt-3 text-xs text-maroon-dark/75">
+        <p className="mt-3 text-xs text-paper/70">
           Akun Anda sendiri tidak bisa dihapus atau diturunkan perannya.
         </p>
       )}

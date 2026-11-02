@@ -90,14 +90,14 @@ export default function MatchFormModal({ players, initial, onSubmit, onClose }: 
           </div>
           <div>
             <span className={labelClass}>Format</span>
-            <div className="grid grid-cols-2 gap-1 rounded-xl border-2 border-maroon bg-cream-dark p-1">
+            <div className="grid grid-cols-2 gap-1 rounded-xl border-2 border-white/20 bg-white/5 p-1">
               {(['singles', 'doubles'] as const).map((option) => (
                 <button
                   key={option}
                   type="button"
                   onClick={() => setFormat(option)}
                   className={`rounded-lg px-2 py-2 text-sm font-semibold transition ${
-                    format === option ? 'bg-maroon text-cream' : 'text-maroon hover:bg-maroon/10'
+                    format === option ? 'bg-paper text-ink-950' : 'text-paper/80 hover:bg-white/10'
                   }`}
                 >
                   {option === 'singles' ? 'Singles' : 'Doubles'}
@@ -116,9 +116,9 @@ export default function MatchFormModal({ players, initial, onSubmit, onClose }: 
         />
 
         <div className="flex items-center gap-3">
-          <span className="h-px flex-1 bg-maroon/20" />
-          <span className="font-display text-sm font-bold text-maroon">VS</span>
-          <span className="h-px flex-1 bg-maroon/20" />
+          <span className="h-px flex-1 bg-white/15" />
+          <span className="font-display text-sm font-bold text-paper/80">VS</span>
+          <span className="h-px flex-1 bg-white/15" />
         </div>
 
         <TeamFields
@@ -143,7 +143,7 @@ export default function MatchFormModal({ players, initial, onSubmit, onClose }: 
               onChange={(event) => setGamesA(event.target.value)}
               className={`${inputClass} text-center font-display text-xl font-bold`}
             />
-            <span className="font-display text-xl font-bold text-maroon">-</span>
+            <span className="font-display text-xl font-bold text-paper/80">-</span>
             <input
               aria-label="Game Tim B"
               type="number"
@@ -159,7 +159,7 @@ export default function MatchFormModal({ players, initial, onSubmit, onClose }: 
         </div>
 
         {error && (
-          <p role="alert" className="rounded-xl border border-clay/40 bg-clay/10 px-4 py-3 text-sm font-semibold text-clay">
+          <p role="alert" className="rounded-xl border border-loss/40 bg-loss/10 px-4 py-3 text-sm font-semibold text-loss">
             {error}
           </p>
         )}
@@ -168,14 +168,14 @@ export default function MatchFormModal({ players, initial, onSubmit, onClose }: 
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full border-2 border-maroon px-5 py-2.5 font-semibold text-maroon transition hover:bg-maroon/10"
+            className="rounded-full border-2 border-paper/30 px-5 py-2.5 font-semibold text-paper transition hover:bg-white/10"
           >
             Batal
           </button>
           <button
             type="submit"
             disabled={saving}
-            className="rounded-full bg-gold px-6 py-2.5 font-semibold text-maroon-dark shadow transition hover:-translate-y-0.5 hover:bg-gold-light active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-full bg-neon px-6 py-2.5 font-semibold text-ink-950 shadow transition hover:-translate-y-0.5 hover:bg-neon-light active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {saving ? 'Menyimpan...' : isEdit ? 'Simpan Perubahan' : 'Simpan Match'}
           </button>

@@ -31,7 +31,7 @@ export default function SettingsModal({
   return (
     <Modal title="Pengaturan Master" onClose={onClose}>
       <div className="flex flex-col gap-6">
-        <div role="tablist" className="grid grid-cols-2 gap-1 rounded-full border-2 border-maroon bg-cream-dark p-1">
+        <div role="tablist" className="grid grid-cols-2 gap-1 rounded-full border-2 border-white/20 bg-white/5 p-1">
           {TABS.map(({ id, label }) => (
             <button
               key={id}
@@ -40,7 +40,7 @@ export default function SettingsModal({
               aria-selected={tab === id}
               onClick={() => setTab(id)}
               className={`rounded-full px-3 py-2 text-sm font-semibold transition ${
-                tab === id ? 'bg-maroon text-cream shadow' : 'text-maroon hover:bg-maroon/10'
+                tab === id ? 'bg-paper text-ink-950 shadow' : 'text-paper/80 hover:bg-white/10'
               }`}
             >
               {label}

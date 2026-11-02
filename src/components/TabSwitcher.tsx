@@ -15,7 +15,7 @@ interface TabSwitcherProps {
 
 export default function TabSwitcher({ tab, onChange }: TabSwitcherProps) {
   return (
-    <div role="tablist" className="inline-flex w-full rounded-full border-2 border-maroon bg-cream-dark p-1 sm:w-auto">
+    <div role="tablist" className="inline-flex w-full rounded-full border-2 border-paper/30 bg-white/5 p-1 sm:w-auto">
       {TABS.map(({ id, label, icon: Icon }) => {
         const active = tab === id;
         return (
@@ -26,7 +26,7 @@ export default function TabSwitcher({ tab, onChange }: TabSwitcherProps) {
             aria-selected={active}
             onClick={() => onChange(id)}
             className={`flex flex-1 items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition sm:flex-none ${
-              active ? 'bg-maroon text-cream shadow' : 'text-maroon hover:bg-maroon/10'
+              active ? 'bg-paper text-ink-950 shadow' : 'text-paper/80 hover:bg-paper/10'
             }`}
           >
             <Icon className="h-4 w-4" aria-hidden="true" />

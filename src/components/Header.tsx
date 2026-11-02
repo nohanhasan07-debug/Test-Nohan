@@ -24,39 +24,39 @@ export default function Header({
   const isPerformance = view === 'performance';
   const ViewIcon = isPerformance ? LayoutList : Activity;
   return (
-    <header className="relative overflow-hidden border-b-4 border-gold bg-maroon text-cream">
-      <CourtLines className="text-cream/15" />
+    <header className="relative overflow-hidden border-b-4 border-neon bg-ink-900 text-paper">
+      <CourtLines className="text-paper/10" />
       <div className="relative mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-4 md:px-8">
         <div className="flex min-w-0 items-center gap-3">
-          <ClubLogo className="h-14 w-14 shrink-0 ring-2 ring-gold" />
+          <ClubLogo className="h-14 w-14 shrink-0 ring-2 ring-neon" />
           <div className="min-w-0">
             <p className="truncate font-display text-xl font-bold leading-tight tracking-wide md:text-2xl">
               PANIC AT THE COURT
             </p>
-            <p className="text-[11px] uppercase tracking-[0.25em] text-gold-light">Tennis Club Leaderboard</p>
+            <p className="text-[11px] uppercase tracking-[0.25em] text-neon-light">Tennis Club Leaderboard</p>
           </div>
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
-          <span className="mr-1 hidden max-w-[10rem] truncate text-sm text-cream/80 md:inline">
+          <span className="mr-1 hidden max-w-[10rem] truncate text-sm text-paper/80 md:inline">
             {displayName}
           </span>
           <button
             type="button"
             onClick={() => onChangeView(isPerformance ? 'leaderboard' : 'performance')}
             aria-pressed={isPerformance}
-            className="inline-flex items-center gap-2 rounded-full border-2 border-gold/70 px-3 py-2 text-sm font-semibold text-cream transition hover:border-gold hover:bg-maroon-light focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+            className="inline-flex items-center gap-2 rounded-full border-2 border-neon/70 px-3 py-2 text-sm font-semibold text-paper transition hover:border-neon hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-neon"
           >
-            <ViewIcon className="h-4 w-4 text-gold" aria-hidden="true" />
+            <ViewIcon className="h-4 w-4 text-neon" aria-hidden="true" />
             <span className="hidden sm:inline">{isPerformance ? 'Klasemen' : 'Performa Saya'}</span>
           </button>
           {isMaster && (
             <button
               type="button"
               onClick={onOpenSettings}
-              className="inline-flex items-center gap-2 rounded-full border-2 border-gold/70 px-3 py-2 text-sm font-semibold text-cream transition hover:border-gold hover:bg-maroon-light focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+              className="inline-flex items-center gap-2 rounded-full border-2 border-neon/70 px-3 py-2 text-sm font-semibold text-paper transition hover:border-neon hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-neon"
             >
-              <Settings className="h-4 w-4 text-gold" aria-hidden="true" />
+              <Settings className="h-4 w-4 text-neon" aria-hidden="true" />
               <span className="hidden sm:inline">Pengaturan</span>
             </button>
           )}
@@ -64,9 +64,9 @@ export default function Header({
             type="button"
             onClick={onSignOut}
             aria-label="Keluar"
-            className="inline-flex items-center gap-2 rounded-full border-2 border-gold/70 px-3 py-2 text-sm font-semibold text-cream transition hover:border-gold hover:bg-maroon-light focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+            className="inline-flex items-center gap-2 rounded-full border-2 border-neon/70 px-3 py-2 text-sm font-semibold text-paper transition hover:border-neon hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-neon"
           >
-            <LogOut className="h-4 w-4 text-gold" aria-hidden="true" />
+            <LogOut className="h-4 w-4 text-neon" aria-hidden="true" />
             <span className="hidden sm:inline">Keluar</span>
           </button>
         </div>
