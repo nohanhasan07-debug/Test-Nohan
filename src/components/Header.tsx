@@ -29,7 +29,7 @@ export default function Header({
   return (
     <header className="relative overflow-hidden border-b-4 border-neon bg-ink-900 text-paper">
       <CourtLines className="text-paper/10" />
-      <div className="relative mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-4 md:px-8">
+      <div className="relative mx-auto flex max-w-5xl flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:justify-between md:px-8">
         <div className="flex min-w-0 items-center gap-3">
           <ClubLogo className="h-14 w-14 shrink-0 ring-2 ring-neon" />
           <div className="min-w-0">
@@ -40,7 +40,7 @@ export default function Header({
           </div>
         </div>
 
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <span className="mr-1 hidden max-w-[10rem] truncate text-sm text-paper/80 md:inline">
             {displayName}
           </span>
