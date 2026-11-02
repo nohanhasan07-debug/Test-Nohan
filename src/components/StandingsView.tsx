@@ -1,11 +1,14 @@
 import RankBadge from '@/components/RankBadge';
+import { FormDots, HotStreakBadge } from '@/components/FormIndicators';
+import type { PlayerForm } from '@/lib/form';
 import type { PlayerStats } from '@/types';
 
 interface StandingsViewProps {
   standings: PlayerStats[];
+  form: Map<string, PlayerForm>;
 }
 
-export default function StandingsView({ standings }: StandingsViewProps) {
+export default function StandingsView({ standings, form }: StandingsViewProps) {
   if (standings.length === 0) {
     return <EmptyMessage />;
   }
@@ -15,6 +18,7 @@ export default function StandingsView({ standings }: StandingsViewProps) {
       <ul className="flex flex-col gap-3 md:hidden">
         {standings.map((entry, index) => {
           const isTop = index === 0;
+          const playerForm = form.get(entry.playerId);
           return (
             <li
               key={entry.playerId}
@@ -24,10 +28,16 @@ export default function StandingsView({ standings }: StandingsViewProps) {
             >
               <RankBadge rank={index + 1} />
               <div className="min-w-0 flex-1">
-                <p className="truncate font-display text-lg font-bold">{entry.name}</p>
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="truncate font-display text-lg font-bold">{entry.name}</p>
+                  <HotStreakBadge streak={playerForm?.winStreak ?? 0} />
+                </div>
                 <p className="mt-0.5 text-xs font-semibold text-paper/70">
                   {entry.mp} main · {entry.w}M {entry.d}S {entry.l}K · GD {formatGd(entry.gd)}
                 </p>
+                <div className="mt-2">
+                  <FormDots recent={playerForm?.recent ?? []} />
+                </div>
               </div>
               <div className="text-right">
                 <p className="font-display text-3xl font-bold leading-none">{entry.pts}</p>
@@ -44,6 +54,7 @@ export default function StandingsView({ standings }: StandingsViewProps) {
             <tr className="text-xs uppercase tracking-wider">
               <th className="px-4 py-3 font-semibold">#</th>
               <th className="px-4 py-3 font-semibold">Pemain</th>
+              <th className="px-3 py-3 text-center font-semibold">Form</th>
               <th className="px-3 py-3 text-center font-semibold">MP</th>
               <th className="px-3 py-3 text-center font-semibold">W</th>
               <th className="px-3 py-3 text-center font-semibold">D</th>
@@ -55,6 +66,7 @@ export default function StandingsView({ standings }: StandingsViewProps) {
           <tbody>
             {standings.map((entry, index) => {
               const isTop = index === 0;
+              const playerForm = form.get(entry.playerId);
               return (
                 <tr
                   key={entry.playerId}
@@ -65,7 +77,17 @@ export default function StandingsView({ standings }: StandingsViewProps) {
                   <td className="px-4 py-3">
                     <RankBadge rank={index + 1} />
                   </td>
-                  <td className="px-4 py-3 font-display text-base font-bold">{entry.name}</td>
+                  <td className="px-4 py-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-display text-base font-bold">{entry.name}</span>
+                      <HotStreakBadge streak={playerForm?.winStreak ?? 0} />
+                    </div>
+                  </td>
+                  <td className="px-3 py-3">
+                    <div className="flex justify-center">
+                      <FormDots recent={playerForm?.recent ?? []} />
+                    </div>
+                  </td>
                   <td className="px-3 py-3 text-center">{entry.mp}</td>
                   <td className="px-3 py-3 text-center">{entry.w}</td>
                   <td className="px-3 py-3 text-center">{entry.d}</td>

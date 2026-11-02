@@ -1,6 +1,6 @@
 export type MatchFormat = 'singles' | 'doubles';
 
-export type LeaderboardTab = 'standings' | 'winrate' | 'history';
+export type LeaderboardTab = 'standings' | 'winrate' | 'history' | 'h2h';
 
 export type AccountRole = 'master' | 'member';
 

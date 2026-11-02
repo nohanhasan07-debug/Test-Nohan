@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { RotateCw } from 'lucide-react';
 import Header, { type AppView } from '@/components/Header';
+import HeadToHeadView from '@/components/HeadToHeadView';
 import MatchFormModal from '@/components/MatchFormModal';
 import MatchHistoryView from '@/components/MatchHistoryView';
 import PerformancePage from '@/components/PerformancePage';
@@ -14,6 +15,7 @@ import WinRateView from '@/components/WinRateView';
 import { primaryButtonClass } from '@/components/formStyles';
 import { useClubData } from '@/hooks/useClubData';
 import { getErrorMessage } from '@/lib/errors';
+import { computePlayerForm } from '@/lib/form';
 import { getMonthKey, getSeasonKey, getSeasonLabel, toIsoDate } from '@/lib/date';
 import {
   computeStats,
@@ -60,6 +62,10 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
   const standings = sortStandings(computeStats(players, viewMatches));
   const winRanking = sortByWinRate(computeStats(players, viewMatches));
   const potm = useMemo(() => findPlayerOfMonth(players, matches, monthKey), [players, matches, monthKey]);
+  const playerForm = useMemo(
+    () => computePlayerForm(players.map((player) => player.id), matches),
+    [players, matches],
+  );
   const playerNames = useMemo(() => new Map(players.map((player) => [player.id, player.name])), [players]);
   const linkedPlayer = useMemo(
     () => players.find((player) => player.profileId === profile.id) ?? null,
@@ -83,7 +89,7 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
     setFormState(null);
   };
 
-  const isEmptyArchive = seasonMode === 'archive' && archiveSeasons.length === 0;
+  const isEmptyArchive = tab !== 'h2h' && seasonMode === 'archive' && archiveSeasons.length === 0;
 
   return (
     <div className="min-h-screen">
@@ -124,19 +130,23 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
 
             <section className="mt-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <TabSwitcher tab={tab} onChange={setTab} />
-              <SeasonFilter
-                mode={seasonMode}
-                onModeChange={setSeasonMode}
-                activeKey={activeKey}
-                archiveKey={resolvedArchiveKey}
-                archiveSeasons={archiveSeasons}
-                onArchiveChange={setArchiveKey}
-              />
+              {tab !== 'h2h' && (
+                <SeasonFilter
+                  mode={seasonMode}
+                  onModeChange={setSeasonMode}
+                  activeKey={activeKey}
+                  archiveKey={resolvedArchiveKey}
+                  archiveSeasons={archiveSeasons}
+                  onArchiveChange={setArchiveKey}
+                />
+              )}
             </section>
 
-            <p className="mt-4 text-xs font-semibold uppercase tracking-[0.2em] text-paper/70">
-              {seasonMode === 'all' ? 'All-Time' : getSeasonLabel(seasonView.kind === 'season' ? seasonView.key : activeKey)}
-            </p>
+            {tab !== 'h2h' && (
+              <p className="mt-4 text-xs font-semibold uppercase tracking-[0.2em] text-paper/70">
+                {seasonMode === 'all' ? 'All-Time' : getSeasonLabel(seasonView.kind === 'season' ? seasonView.key : activeKey)}
+              </p>
+            )}
 
             {actionError && (
               <p role="alert" className="mt-4 rounded-xl border border-loss/40 bg-loss/10 px-4 py-3 text-sm font-semibold text-loss">
@@ -151,7 +161,9 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
                   <p className="mt-1 text-sm text-paper/70">Arsip akan muncul setelah season berganti.</p>
                 </div>
               ) : tab === 'standings' ? (
-                <StandingsView standings={standings} />
+                <StandingsView standings={standings} form={playerForm} />
+              ) : tab === 'h2h' ? (
+                <HeadToHeadView players={players} matches={matches} />
               ) : tab === 'winrate' ? (
                 <WinRateView ranking={winRanking} />
               ) : (
