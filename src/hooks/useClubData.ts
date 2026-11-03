@@ -25,6 +25,7 @@ export function useClubData() {
   const [loaded, setLoaded] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
+  // Stats and leaderboards count only approved matches.
   const matches = useMemo(() => allMatches.filter((match) => match.status === 'approved'), [allMatches]);
   const reviewMatches = useMemo(() => allMatches.filter((match) => match.status !== 'approved'), [allMatches]);
 

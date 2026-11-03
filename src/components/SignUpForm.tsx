@@ -7,6 +7,7 @@ interface SignUpFormProps {
   onSignUp: (username: string, password: string) => Promise<string | null>;
 }
 
+// Mirrors the username rule enforced in the database.
 const USERNAME_PATTERN = /^[a-z0-9_.]{3,20}$/;
 
 function validate(username: string, password: string, confirmation: string): string | null {
@@ -14,6 +15,7 @@ function validate(username: string, password: string, confirmation: string): str
     return 'Username 3-20 karakter: huruf kecil, angka, titik, atau garis bawah.';
   }
   if (password.length < 6) return 'Password minimal 6 karakter.';
+  // 72 is the maximum the auth provider accepts for a password.
   if (password.length > 72) return 'Password maksimal 72 karakter.';
   if (password !== confirmation) return 'Konfirmasi password tidak sama.';
   return null;

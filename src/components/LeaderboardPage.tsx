@@ -92,6 +92,7 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
     }
   };
 
+  // Member entries wait for master approval; master entries go straight into the standings.
   const handleSaveMatch = async (input: MatchInput) => {
     const matchId = formState?.match?.id;
     await saveMatch(input, { matchId, status: isMaster ? 'approved' : 'pending' });

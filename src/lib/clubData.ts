@@ -88,6 +88,7 @@ export async function insertMatch(input: MatchInput, status: 'pending' | 'approv
   if (error) throw new Error(SAVE_ERROR);
 }
 
+// Only pending matches can be reviewed, so an already decided match is never overwritten.
 export async function reviewMatch(matchId: string, status: 'approved' | 'rejected'): Promise<void> {
   const { error } = await supabase
     .from('club_matches')

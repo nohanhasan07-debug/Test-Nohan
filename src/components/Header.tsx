@@ -33,6 +33,7 @@ export default function Header({
   const isApprovals = view === 'approvals';
   const ViewIcon = isPerformance ? LayoutList : Activity;
 
+  // Closes the menu on outside click or Escape; listeners exist only while it is open.
   useEffect(() => {
     if (!menuOpen) return;
     const handlePointerDown = (event: PointerEvent) => {
@@ -71,80 +72,82 @@ export default function Header({
         </div>
 
         <div className="flex shrink-0 items-center gap-3">
-        <span className="hidden max-w-[10rem] truncate text-sm font-semibold text-paper/80 sm:inline">@{username}</span>
-        <div ref={menuRef} className="relative">
-          <button
-            type="button"
-            onClick={() => setMenuOpen((open) => !open)}
-            aria-label={menuOpen ? 'Tutup menu' : 'Buka menu'}
-            aria-expanded={menuOpen}
-            aria-haspopup="menu"
-            className="inline-flex h-11 w-11 items-center justify-center rounded-full border-2 border-neon/70 text-paper transition hover:border-neon hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-neon"
-          >
-            {menuOpen ? (
-              <X className="h-5 w-5 text-neon" aria-hidden="true" />
-            ) : (
-              <Menu className="h-5 w-5 text-neon" aria-hidden="true" />
-            )}
-          </button>
-
-          {menuOpen && (
-            <div
-              role="menu"
-              className="animate-fade-up absolute right-0 top-full z-50 mt-3 w-64 rounded-2xl border-2 border-neon/50 bg-ink-900 p-2 shadow-xl"
+          <span className="hidden max-w-[10rem] truncate text-sm font-semibold text-paper/80 sm:inline">
+            @{username}
+          </span>
+          <div ref={menuRef} className="relative">
+            <button
+              type="button"
+              onClick={() => setMenuOpen((open) => !open)}
+              aria-label={menuOpen ? 'Tutup menu' : 'Buka menu'}
+              aria-expanded={menuOpen}
+              aria-haspopup="menu"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-full border-2 border-neon/70 text-paper transition hover:border-neon hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-neon"
             >
-              <p className="truncate px-3 pb-2 pt-1 text-xs font-semibold uppercase tracking-[0.2em] text-paper/70">
-                @{username}
-              </p>
-              <div className="my-1 h-px bg-white/10" />
+              {menuOpen ? (
+                <X className="h-5 w-5 text-neon" aria-hidden="true" />
+              ) : (
+                <Menu className="h-5 w-5 text-neon" aria-hidden="true" />
+              )}
+            </button>
 
-              <button
-                type="button"
-                role="menuitem"
-                onClick={() => choose(() => onChangeView(isPerformance ? 'leaderboard' : 'performance'))}
-                className={menuItemClass}
+            {menuOpen && (
+              <div
+                role="menu"
+                className="animate-fade-up absolute right-0 top-full z-50 mt-3 w-64 rounded-2xl border-2 border-neon/50 bg-ink-900 p-2 shadow-xl"
               >
-                <ViewIcon className="h-4 w-4 text-neon" aria-hidden="true" />
-                {isPerformance ? 'Klasemen' : 'Performa Saya'}
-              </button>
+                <p className="truncate px-3 pb-2 pt-1 text-xs font-semibold uppercase tracking-[0.2em] text-paper/70">
+                  @{username}
+                </p>
+                <div className="my-1 h-px bg-white/10" />
 
-              {isMaster && (
                 <button
                   type="button"
                   role="menuitem"
-                  onClick={() => choose(() => onChangeView(isApprovals ? 'leaderboard' : 'approvals'))}
+                  onClick={() => choose(() => onChangeView(isPerformance ? 'leaderboard' : 'performance'))}
                   className={menuItemClass}
                 >
-                  <ClipboardCheck className="h-4 w-4 text-neon" aria-hidden="true" />
-                  <span className="flex-1">Persetujuan</span>
-                  {pendingCount > 0 && (
-                    <span className="rounded-full bg-neon px-2 text-[11px] font-bold leading-5 text-ink-950">
-                      {pendingCount}
-                    </span>
-                  )}
+                  <ViewIcon className="h-4 w-4 text-neon" aria-hidden="true" />
+                  {isPerformance ? 'Klasemen' : 'Performa Saya'}
                 </button>
-              )}
 
-              {isMaster && (
-                <button type="button" role="menuitem" onClick={() => choose(onOpenSettings)} className={menuItemClass}>
-                  <Settings className="h-4 w-4 text-neon" aria-hidden="true" />
-                  Pengaturan
+                {isMaster && (
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => choose(() => onChangeView(isApprovals ? 'leaderboard' : 'approvals'))}
+                    className={menuItemClass}
+                  >
+                    <ClipboardCheck className="h-4 w-4 text-neon" aria-hidden="true" />
+                    <span className="flex-1">Persetujuan</span>
+                    {pendingCount > 0 && (
+                      <span className="rounded-full bg-neon px-2 text-[11px] font-bold leading-5 text-ink-950">
+                        {pendingCount}
+                      </span>
+                    )}
+                  </button>
+                )}
+
+                {isMaster && (
+                  <button type="button" role="menuitem" onClick={() => choose(onOpenSettings)} className={menuItemClass}>
+                    <Settings className="h-4 w-4 text-neon" aria-hidden="true" />
+                    Pengaturan
+                  </button>
+                )}
+
+                <div className="my-1 h-px bg-white/10" />
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => choose(onSignOut)}
+                  className={`${menuItemClass} text-loss`}
+                >
+                  <LogOut className="h-4 w-4" aria-hidden="true" />
+                  Logout
                 </button>
-              )}
-
-              <div className="my-1 h-px bg-white/10" />
-              <button
-                type="button"
-                role="menuitem"
-                onClick={() => choose(onSignOut)}
-                className={`${menuItemClass} text-loss`}
-              >
-                <LogOut className="h-4 w-4" aria-hidden="true" />
-                Logout
-              </button>
-            </div>
-          )}
-        </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </header>

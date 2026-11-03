@@ -11,6 +11,7 @@ export type AuthState =
   | { status: 'signed-out' }
   | { status: 'signed-in'; profile: Profile | null };
 
+// Supabase requires an email, so usernames map to an internal address that members never see.
 const toAuthEmail = (username: string) => `${username.trim().toLowerCase()}@${AUTH_EMAIL_DOMAIN}`;
 
 export function useAuth() {
@@ -63,6 +64,7 @@ export function useAuth() {
       if (/already registered/i.test(error.message)) return 'Username sudah dipakai. Coba username lain.';
       return 'Akun tidak bisa dibuat. Coba lagi.';
     }
+    // No session means email confirmation is still enabled, so the account cannot sign in yet.
     if (!data.session) return 'Akun sudah dibuat, tetapi belum bisa langsung masuk. Hubungi master admin.';
     return null;
   };

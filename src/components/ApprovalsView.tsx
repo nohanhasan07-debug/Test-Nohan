@@ -18,6 +18,7 @@ export default function ApprovalsView({ matches, playerNames, onReview }: Approv
 
   useEffect(() => {
     let active = true;
+    // Master-only query; members cannot read other accounts.
     fetchProfiles()
       .then((profiles) => {
         if (active) setSubmitterNames(new Map(profiles.map((profile) => [profile.id, profile.displayName])));
