@@ -104,7 +104,7 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
   return (
     <div className="min-h-screen">
       <Header
-        displayName={profile.displayName}
+        username={profile.username}
         isMaster={isMaster}
         pendingCount={pendingMatches.length}
         view={view}

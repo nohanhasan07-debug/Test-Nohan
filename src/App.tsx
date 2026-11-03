@@ -1,11 +1,11 @@
 import ClubLogo from '@/components/ClubLogo';
-import LoginPage from '@/components/LoginPage';
+import AuthPage from '@/components/AuthPage';
 import LeaderboardPage from '@/components/LeaderboardPage';
 import { secondaryButtonClass } from '@/components/formStyles';
 import { useAuth } from '@/hooks/useAuth';
 
 function App() {
-  const { state, signIn, signOut } = useAuth();
+  const { state, signIn, signUp, signOut } = useAuth();
 
   if (state.status === 'loading') {
     return (
@@ -17,7 +17,7 @@ function App() {
   }
 
   if (state.status === 'signed-out') {
-    return <LoginPage onSignIn={signIn} />;
+    return <AuthPage onSignIn={signIn} onSignUp={signUp} />;
   }
 
   if (!state.profile) {

@@ -11,6 +11,8 @@ export type AuthState =
   | { status: 'signed-out' }
   | { status: 'signed-in'; profile: Profile | null };
 
+const toAuthEmail = (username: string) => `${username.trim().toLowerCase()}@${AUTH_EMAIL_DOMAIN}`;
+
 export function useAuth() {
   const [state, setState] = useState<AuthState>({ status: 'loading' });
 
@@ -45,9 +47,23 @@ export function useAuth() {
   }, []);
 
   const signIn = async (username: string, password: string): Promise<string | null> => {
-    const email = `${username.trim().toLowerCase()}@${AUTH_EMAIL_DOMAIN}`;
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await supabase.auth.signInWithPassword({ email: toAuthEmail(username), password });
     if (error) return 'Username atau password salah.';
+    return null;
+  };
+
+  const signUp = async (username: string, password: string): Promise<string | null> => {
+    const normalized = username.trim().toLowerCase();
+    const { data, error } = await supabase.auth.signUp({
+      email: toAuthEmail(normalized),
+      password,
+      options: { data: { username: normalized } },
+    });
+    if (error) {
+      if (/already registered/i.test(error.message)) return 'Username sudah dipakai. Coba username lain.';
+      return 'Akun tidak bisa dibuat. Coba lagi.';
+    }
+    if (!data.session) return 'Akun sudah dibuat, tetapi belum bisa langsung masuk. Hubungi master admin.';
     return null;
   };
 
@@ -55,5 +71,5 @@ export function useAuth() {
     await supabase.auth.signOut();
   };
 
-  return { state, signIn, signOut };
+  return { state, signIn, signUp, signOut };
 }

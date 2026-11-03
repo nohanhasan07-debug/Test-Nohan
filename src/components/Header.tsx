@@ -6,7 +6,7 @@ import CourtLines from '@/components/CourtLines';
 export type AppView = 'leaderboard' | 'performance' | 'approvals';
 
 interface HeaderProps {
-  displayName: string;
+  username: string;
   isMaster: boolean;
   pendingCount: number;
   view: AppView;
@@ -19,7 +19,7 @@ const menuItemClass =
   'flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-paper transition hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-neon';
 
 export default function Header({
-  displayName,
+  username,
   isMaster,
   pendingCount,
   view,
@@ -70,7 +70,9 @@ export default function Header({
           </div>
         </div>
 
-        <div ref={menuRef} className="relative shrink-0">
+        <div className="flex shrink-0 items-center gap-3">
+        <span className="hidden max-w-[10rem] truncate text-sm font-semibold text-paper/80 sm:inline">@{username}</span>
+        <div ref={menuRef} className="relative">
           <button
             type="button"
             onClick={() => setMenuOpen((open) => !open)}
@@ -92,7 +94,7 @@ export default function Header({
               className="animate-fade-up absolute right-0 top-full z-50 mt-3 w-64 rounded-2xl border-2 border-neon/50 bg-ink-900 p-2 shadow-xl"
             >
               <p className="truncate px-3 pb-2 pt-1 text-xs font-semibold uppercase tracking-[0.2em] text-paper/70">
-                {displayName}
+                @{username}
               </p>
               <div className="my-1 h-px bg-white/10" />
 
@@ -138,10 +140,11 @@ export default function Header({
                 className={`${menuItemClass} text-loss`}
               >
                 <LogOut className="h-4 w-4" aria-hidden="true" />
-                Keluar
+                Logout
               </button>
             </div>
           )}
+        </div>
         </div>
       </div>
     </header>
