@@ -14,54 +14,21 @@ export default function StandingsView({ standings, form }: StandingsViewProps) {
   }
 
   return (
-    <div>
+    <div className="pb-24 md:pb-4">
       <FormLegend />
-      <ul className="flex flex-col gap-3 md:hidden">
-        {standings.map((entry, index) => {
-          const isTop = index === 0;
-          const playerForm = form.get(entry.playerId);
-          return (
-            <li
-              key={entry.playerId}
-              className={`flex items-center gap-4 rounded-2xl border-2 p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${
-                isTop ? 'border-neon/60 bg-neon/10 text-paper' : 'border-white/10 bg-white/5'
-              }`}
-            >
-              <RankBadge rank={index + 1} />
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <p className="truncate font-display text-lg font-bold">{entry.name}</p>
-                  <HotStreakBadge streak={playerForm?.winStreak ?? 0} />
-                </div>
-                <p className="mt-0.5 text-xs font-semibold text-paper/70">
-                  {entry.mp} main · {entry.w}M {entry.d}S {entry.l}K · GD {formatGd(entry.gd)}
-                </p>
-                <div className="mt-2">
-                  <FormDots recent={playerForm?.recent ?? []} />
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="font-display text-3xl font-bold leading-none">{entry.pts}</p>
-                <p className="mt-1 text-[10px] font-semibold uppercase tracking-wider">Poin</p>
-              </div>
-            </li>
-          );
-        })}
-      </ul>
-
-      <div className="hidden overflow-hidden rounded-2xl border-2 border-white/15 bg-white/5 shadow-sm md:block">
-        <table className="w-full text-left text-sm">
+      <div className="overflow-x-auto rounded-2xl border-2 border-white/15 bg-white/5 shadow-sm">
+        <table className="min-w-[680px] w-full text-left text-xs sm:text-sm">
           <thead className="bg-white/10 text-paper">
-            <tr className="text-xs uppercase tracking-wider">
-              <th className="px-4 py-3 font-semibold">#</th>
-              <th className="px-4 py-3 font-semibold">Pemain</th>
-              <th className="px-3 py-3 text-center font-semibold">Form</th>
-              <th className="px-3 py-3 text-center font-semibold">MP</th>
-              <th className="px-3 py-3 text-center font-semibold">W</th>
-              <th className="px-3 py-3 text-center font-semibold">D</th>
-              <th className="px-3 py-3 text-center font-semibold">L</th>
-              <th className="px-3 py-3 text-center font-semibold">GD</th>
-              <th className="px-4 py-3 text-center font-semibold">Poin</th>
+            <tr className="whitespace-nowrap text-[10px] uppercase tracking-wider sm:text-xs">
+              <th className="px-2 py-2 font-semibold sm:px-4 sm:py-3">#</th>
+              <th className="px-2 py-2 font-semibold sm:px-4 sm:py-3">Pemain</th>
+              <th className="px-2 py-2 text-center font-semibold sm:px-3 sm:py-3">Form</th>
+              <th className="px-2 py-2 text-center font-semibold sm:px-3 sm:py-3">MP</th>
+              <th className="px-2 py-2 text-center font-semibold sm:px-3 sm:py-3">W</th>
+              <th className="px-2 py-2 text-center font-semibold sm:px-3 sm:py-3">D</th>
+              <th className="px-2 py-2 text-center font-semibold sm:px-3 sm:py-3">L</th>
+              <th className="px-2 py-2 text-center font-semibold sm:px-3 sm:py-3">GD</th>
+              <th className="px-2 py-2 text-center font-semibold sm:px-4 sm:py-3">Poin</th>
             </tr>
           </thead>
           <tbody>
@@ -71,30 +38,32 @@ export default function StandingsView({ standings, form }: StandingsViewProps) {
               return (
                 <tr
                   key={entry.playerId}
-                  className={`border-t border-white/10 transition hover:bg-white/5 ${
+                  className={`whitespace-nowrap border-t border-white/10 transition hover:bg-white/5 ${
                     isTop ? 'bg-neon/10' : ''
                   }`}
                 >
-                  <td className="px-4 py-3">
+                  <td className="px-2 py-2 sm:px-4 sm:py-3">
                     <RankBadge rank={index + 1} />
                   </td>
-                  <td className="px-4 py-3">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-display text-base font-bold">{entry.name}</span>
+                  <td className="px-2 py-2 sm:px-4 sm:py-3">
+                    <div className="flex items-center gap-2">
+                      <span className="font-display text-sm font-bold sm:text-base">{entry.name}</span>
                       <HotStreakBadge streak={playerForm?.winStreak ?? 0} />
                     </div>
                   </td>
-                  <td className="px-3 py-3">
+                  <td className="px-2 py-2 sm:px-3 sm:py-3">
                     <div className="flex justify-center">
                       <FormDots recent={playerForm?.recent ?? []} />
                     </div>
                   </td>
-                  <td className="px-3 py-3 text-center">{entry.mp}</td>
-                  <td className="px-3 py-3 text-center">{entry.w}</td>
-                  <td className="px-3 py-3 text-center">{entry.d}</td>
-                  <td className="px-3 py-3 text-center">{entry.l}</td>
-                  <td className="px-3 py-3 text-center">{formatGd(entry.gd)}</td>
-                  <td className="px-4 py-3 text-center font-display text-lg font-bold">{entry.pts}</td>
+                  <td className="px-2 py-2 text-center sm:px-3 sm:py-3">{entry.mp}</td>
+                  <td className="px-2 py-2 text-center sm:px-3 sm:py-3">{entry.w}</td>
+                  <td className="px-2 py-2 text-center sm:px-3 sm:py-3">{entry.d}</td>
+                  <td className="px-2 py-2 text-center sm:px-3 sm:py-3">{entry.l}</td>
+                  <td className="px-2 py-2 text-center sm:px-3 sm:py-3">{formatGd(entry.gd)}</td>
+                  <td className="px-2 py-2 text-center font-display text-base font-bold sm:px-4 sm:py-3 sm:text-lg">
+                    {entry.pts}
+                  </td>
                 </tr>
               );
             })}
