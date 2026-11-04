@@ -2,18 +2,19 @@ import { useEffect, useMemo, useState } from 'react';
 import { RotateCw } from 'lucide-react';
 import ApprovalsView from '@/components/ApprovalsView';
 import DailyRecap from '@/components/DailyRecap';
-import Header, { type AppView } from '@/components/Header';
 import HeadToHeadView from '@/components/HeadToHeadView';
 import MatchFormModal from '@/components/MatchFormModal';
 import MatchHistoryView from '@/components/MatchHistoryView';
 import MySubmissionsCard from '@/components/MySubmissionsCard';
 import PerformancePage from '@/components/PerformancePage';
-import PotmCard from '@/components/PotmCard';
 import SeasonFilter, { type SeasonMode } from '@/components/SeasonFilter';
 import SettingsModal from '@/components/SettingsModal';
+import Sidebar, { type AppView } from '@/components/Sidebar';
 import StandingsView from '@/components/StandingsView';
+import StatCards from '@/components/StatCards';
 import TabSwitcher from '@/components/TabSwitcher';
 import TennisBall from '@/components/TennisBall';
+import TopBar from '@/components/TopBar';
 import WinRateView from '@/components/WinRateView';
 import { primaryButtonClass } from '@/components/formStyles';
 import { useClubData } from '@/hooks/useClubData';
@@ -50,8 +51,7 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
     saveMatch,
     approveOrRejectMatch,
     deleteMatch,
-  } =
-    useClubData();
+  } = useClubData();
   const isMaster = profile.role === 'master';
   const pendingMatches = useMemo(() => reviewMatches.filter((match) => match.status === 'pending'), [reviewMatches]);
   const mySubmissions = useMemo(
@@ -59,6 +59,7 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
     [reviewMatches, profile.id],
   );
   const [view, setView] = useState<AppView>('leaderboard');
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [tab, setTab] = useState<LeaderboardTab>('standings');
   const [standingsMode, setStandingsMode] = useState<'overall' | 'daily'>('overall');
@@ -73,6 +74,7 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
   const todayIso = toIsoDate(today);
   const activeKey = getSeasonKey(todayIso);
   const monthKey = getMonthKey(todayIso);
+  const activeSeasonLabel = getSeasonLabel(activeKey);
 
   const dailyDates = useMemo(
     () => [...new Set(matches.map((match) => match.date))].sort((a, b) => b.localeCompare(a)),
@@ -105,6 +107,15 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
     [players, profile.id],
   );
 
+  const topStreak = useMemo(() => {
+    let best: { name: string; streak: number } | null = null;
+    for (const player of players) {
+      const streak = playerForm.get(player.id)?.winStreak ?? 0;
+      if (streak > 0 && (!best || streak > best.streak)) best = { name: player.name, streak };
+    }
+    return best;
+  }, [players, playerForm]);
+
   const ready = loaded && !loadError;
 
   const handleDelete = async (match: Match) => {
@@ -117,7 +128,6 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
     }
   };
 
-  // Member entries wait for master approval; master entries go straight into the standings.
   const handleSaveMatch = async (input: MatchInput) => {
     const matchId = formState?.match?.id;
     await saveMatch(input, { matchId, status: isMaster ? 'approved' : 'pending' });
@@ -128,145 +138,169 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
   const isEmptyArchive =
     tab !== 'h2h' && standingsMode === 'overall' && seasonMode === 'archive' && archiveSeasons.length === 0;
 
+  const renderContent = () => {
+    if (!loaded) {
+      return (
+        <p className="py-16 text-center text-sm font-semibold uppercase tracking-[0.2em] text-paper/70">
+          Memuat data klub...
+        </p>
+      );
+    }
+
+    if (loadError) {
+      return (
+        <div className="flex flex-col items-center gap-4 rounded-2xl border-2 border-loss/40 bg-white/5 p-8 text-center">
+          <p className="font-display text-lg font-bold">Data klub tidak bisa dimuat</p>
+          <p role="alert" className="text-sm text-paper/70">{loadError}</p>
+          <button type="button" onClick={() => void reload()} className={primaryButtonClass}>
+            <RotateCw className="h-4 w-4" aria-hidden="true" />
+            Coba Lagi
+          </button>
+        </div>
+      );
+    }
+
+    if (view === 'performance') {
+      return <PerformancePage player={linkedPlayer} players={players} matches={matches} />;
+    }
+
+    if (view === 'approvals' && isMaster) {
+      return <ApprovalsView matches={pendingMatches} playerNames={playerNames} onReview={approveOrRejectMatch} />;
+    }
+
+    return (
+      <>
+        <StatCards
+          potm={potm}
+          monthLabel={activeSeasonLabel}
+          totalMatches={viewMatches.length}
+          activePlayers={standings.length}
+          topStreak={topStreak}
+        />
+
+        {!isMaster && mySubmissions.length > 0 && (
+          <div className="mt-6">
+            <MySubmissionsCard matches={mySubmissions} playerNames={playerNames} />
+          </div>
+        )}
+
+        <section className="mt-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <TabSwitcher tab={tab} onChange={setTab} />
+            {tab === 'standings' && (
+              <div className="flex w-full rounded-full border-2 border-white/20 bg-white/5 p-1 sm:w-auto">
+                <button
+                  type="button"
+                  onClick={() => setStandingsMode('overall')}
+                  className={`flex-1 whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-semibold transition sm:flex-none ${
+                    standingsMode === 'overall' ? 'bg-paper text-ink-950 shadow' : 'text-paper/75 hover:bg-white/10'
+                  }`}
+                >
+                  Keseluruhan
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setStandingsMode('daily')}
+                  className={`flex-1 whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-semibold transition sm:flex-none ${
+                    standingsMode === 'daily' ? 'bg-neon text-ink-950 shadow' : 'text-paper/75 hover:bg-white/10'
+                  }`}
+                >
+                  Harian
+                </button>
+              </div>
+            )}
+          </div>
+          {tab !== 'h2h' && standingsMode === 'overall' && (
+            <SeasonFilter
+              mode={seasonMode}
+              onModeChange={setSeasonMode}
+              activeKey={activeKey}
+              archiveKey={resolvedArchiveKey}
+              archiveSeasons={archiveSeasons}
+              onArchiveChange={setArchiveKey}
+            />
+          )}
+        </section>
+
+        {tab !== 'h2h' && standingsMode === 'overall' && (
+          <p className="mt-4 text-xs font-semibold uppercase tracking-[0.2em] text-paper/70">
+            {seasonMode === 'all' ? 'All-Time' : getSeasonLabel(seasonView.kind === 'season' ? seasonView.key : activeKey)}
+          </p>
+        )}
+
+        {submitNotice && (
+          <p role="status" className="mt-4 rounded-xl border border-neon/50 bg-neon/10 px-4 py-3 text-sm font-semibold text-paper">
+            {submitNotice}
+          </p>
+        )}
+
+        {actionError && (
+          <p role="alert" className="mt-4 rounded-xl border border-loss/40 bg-loss/10 px-4 py-3 text-sm font-semibold text-loss">
+            {actionError}
+          </p>
+        )}
+
+        <div key={`${tab}-${seasonMode}-${resolvedArchiveKey}-${standingsMode}`} className="animate-fade-up mt-4">
+          {isEmptyArchive ? (
+            <div className="rounded-2xl border-2 border-dashed border-white/20 bg-white/5 p-8 text-center">
+              <p className="font-display text-lg font-bold">Hall of Fame masih kosong</p>
+              <p className="mt-1 text-sm text-paper/70">Arsip akan muncul setelah season berganti.</p>
+            </div>
+          ) : tab === 'standings' && standingsMode === 'daily' ? (
+            <DailyRecap
+              players={players}
+              matches={matches}
+              date={dailyDate || dailyDates[0] || todayIso}
+              dates={dailyDates}
+              onDateChange={setDailyDate}
+            />
+          ) : tab === 'standings' ? (
+            <StandingsView standings={standings} form={playerForm} />
+          ) : tab === 'h2h' ? (
+            <HeadToHeadView players={players} matches={matches} />
+          ) : tab === 'winrate' ? (
+            <WinRateView ranking={winRanking} />
+          ) : (
+            <MatchHistoryView
+              matches={viewMatches}
+              playerNames={playerNames}
+              isMaster={isMaster}
+              onEdit={(match) => setFormState({ match })}
+              onDelete={handleDelete}
+            />
+          )}
+        </div>
+      </>
+    );
+  };
+
   return (
-    <div className="min-h-screen">
-      <Header
+    <div className="min-h-screen bg-ink-950">
+      <Sidebar
         username={profile.username}
         isMaster={isMaster}
         pendingCount={pendingMatches.length}
         view={view}
+        tab={tab}
         onChangeView={setView}
+        onChangeTab={setTab}
         onOpenSettings={() => setSettingsOpen(true)}
         onSignOut={onSignOut}
+        mobileOpen={mobileNavOpen}
+        onCloseMobile={() => setMobileNavOpen(false)}
       />
 
-      <main className="mx-auto max-w-5xl px-4 pb-32 pt-6 md:px-8 md:pt-10">
-        {!loaded && (
-          <p className="py-16 text-center text-sm font-semibold uppercase tracking-[0.2em] text-paper/70">
-            Memuat data klub...
-          </p>
-        )}
+      <div className="lg:pl-60">
+        <TopBar
+          username={profile.username}
+          seasonLabel={activeSeasonLabel}
+          onOpenMobileNav={() => setMobileNavOpen(true)}
+        />
 
-        {loaded && loadError && (
-          <div className="flex flex-col items-center gap-4 rounded-2xl border-2 border-loss/40 bg-white/5 p-8 text-center">
-            <p className="font-display text-lg font-bold">Data klub tidak bisa dimuat</p>
-            <p role="alert" className="text-sm text-paper/70">{loadError}</p>
-            <button type="button" onClick={() => void reload()} className={primaryButtonClass}>
-              <RotateCw className="h-4 w-4" aria-hidden="true" />
-              Coba Lagi
-            </button>
-          </div>
-        )}
+        <main className="mx-auto max-w-5xl px-4 pb-32 pt-6 md:px-8 md:pt-8">{renderContent()}</main>
+      </div>
 
-        {ready && view === 'performance' && (
-          <PerformancePage player={linkedPlayer} players={players} matches={matches} />
-        )}
-
-        {ready && view === 'approvals' && isMaster && (
-          <ApprovalsView matches={pendingMatches} playerNames={playerNames} onReview={approveOrRejectMatch} />
-        )}
-
-        {ready && view === 'leaderboard' && (
-          <>
-            <PotmCard player={potm} monthKey={monthKey} />
-
-            {!isMaster && mySubmissions.length > 0 && (
-              <div className="mt-8">
-                <MySubmissionsCard matches={mySubmissions} playerNames={playerNames} />
-              </div>
-            )}
-
-            <section className="mt-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                <TabSwitcher tab={tab} onChange={setTab} />
-                {tab === 'standings' && (
-                  <div className="flex w-full rounded-full border-2 border-white/20 bg-white/5 p-1 sm:w-auto">
-                    <button
-                      type="button"
-                      onClick={() => setStandingsMode('overall')}
-                      className={`flex-1 whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-semibold transition sm:flex-none ${
-                        standingsMode === 'overall' ? 'bg-paper text-ink-950 shadow' : 'text-paper/75 hover:bg-white/10'
-                      }`}
-                    >
-                      Keseluruhan
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setStandingsMode('daily')}
-                      className={`flex-1 whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-semibold transition sm:flex-none ${
-                        standingsMode === 'daily' ? 'bg-neon text-ink-950 shadow' : 'text-paper/75 hover:bg-white/10'
-                      }`}
-                    >
-                      Harian
-                    </button>
-                  </div>
-                )}
-              </div>
-              {tab !== 'h2h' && standingsMode === 'overall' && (
-                <SeasonFilter
-                  mode={seasonMode}
-                  onModeChange={setSeasonMode}
-                  activeKey={activeKey}
-                  archiveKey={resolvedArchiveKey}
-                  archiveSeasons={archiveSeasons}
-                  onArchiveChange={setArchiveKey}
-                />
-              )}
-            </section>
-
-            {tab !== 'h2h' && standingsMode === 'overall' && (
-              <p className="mt-4 text-xs font-semibold uppercase tracking-[0.2em] text-paper/70">
-                {seasonMode === 'all' ? 'All-Time' : getSeasonLabel(seasonView.kind === 'season' ? seasonView.key : activeKey)}
-              </p>
-            )}
-
-            {submitNotice && (
-              <p role="status" className="mt-4 rounded-xl border border-neon/50 bg-neon/10 px-4 py-3 text-sm font-semibold text-paper">
-                {submitNotice}
-              </p>
-            )}
-
-            {actionError && (
-              <p role="alert" className="mt-4 rounded-xl border border-loss/40 bg-loss/10 px-4 py-3 text-sm font-semibold text-loss">
-                {actionError}
-              </p>
-            )}
-
-            <div key={`${tab}-${seasonMode}-${resolvedArchiveKey}`} className="animate-fade-up mt-4">
-              {isEmptyArchive ? (
-                <div className="rounded-2xl border-2 border-dashed border-white/20 bg-white/5 p-8 text-center">
-                  <p className="font-display text-lg font-bold">Hall of Fame masih kosong</p>
-                  <p className="mt-1 text-sm text-paper/70">Arsip akan muncul setelah season berganti.</p>
-                </div>
-              ) : tab === 'standings' && standingsMode === 'daily' ? (
-                <DailyRecap
-                  players={players}
-                  matches={matches}
-                  date={dailyDate || dailyDates[0] || todayIso}
-                  dates={dailyDates}
-                  onDateChange={setDailyDate}
-                />
-              ) : tab === 'standings' ? (
-                <StandingsView standings={standings} form={playerForm} />
-              ) : tab === 'h2h' ? (
-                <HeadToHeadView players={players} matches={matches} />
-              ) : tab === 'winrate' ? (
-                <WinRateView ranking={winRanking} />
-              ) : (
-                <MatchHistoryView
-                  matches={viewMatches}
-                  playerNames={playerNames}
-                  isMaster={isMaster}
-                  onEdit={(match) => setFormState({ match })}
-                  onDelete={handleDelete}
-                />
-              )}
-            </div>
-          </>
-        )}
-      </main>
-
-      {ready && view === 'leaderboard' && (
+      {ready && (
         <button
           type="button"
           onClick={() => setFormState({})}
