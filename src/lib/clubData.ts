@@ -74,6 +74,14 @@ export async function insertPlayer(name: string): Promise<void> {
   if (error) throw new Error(SAVE_ERROR);
 }
 
+export async function removePlayer(playerId: string): Promise<void> {
+  const { error } = await supabase.rpc('delete_club_player', { p_player_id: playerId });
+  if (error?.message.includes('player has match history')) {
+    throw new Error('Pemain tidak dapat dihapus karena masih terikat riwayat pertandingan.');
+  }
+  if (error) throw new Error('Pemain tidak dapat dihapus. Coba lagi.');
+}
+
 export async function linkPlayerToProfile(playerId: string, profileId: string | null): Promise<void> {
   const { error } = await supabase
     .from('club_players')

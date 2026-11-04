@@ -16,6 +16,7 @@ interface SettingsModalProps {
   players: Player[];
   onAddPlayer: (name: string) => Promise<void>;
   onLinkPlayer: (playerId: string, profileId: string | null) => Promise<void>;
+  onDeletePlayer: (playerId: string) => Promise<void>;
   onClose: () => void;
 }
 
@@ -24,6 +25,7 @@ export default function SettingsModal({
   players,
   onAddPlayer,
   onLinkPlayer,
+  onDeletePlayer,
   onClose,
 }: SettingsModalProps) {
   const [tab, setTab] = useState<SettingsTab>('users');
@@ -50,7 +52,12 @@ export default function SettingsModal({
 
         {tab === 'users' && <UsersPanel currentUserId={currentUserId} />}
         {tab === 'players' && (
-          <PlayersPanel players={players} onAddPlayer={onAddPlayer} onLinkPlayer={onLinkPlayer} />
+          <PlayersPanel
+            players={players}
+            onAddPlayer={onAddPlayer}
+            onLinkPlayer={onLinkPlayer}
+            onDeletePlayer={onDeletePlayer}
+          />
         )}
       </div>
     </Modal>

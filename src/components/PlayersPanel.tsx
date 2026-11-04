@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { UserPlus } from 'lucide-react';
+import { Trash2, UserPlus } from 'lucide-react';
 import { errorTextClass, inputClass, primaryButtonClass } from '@/components/formStyles';
 import { fetchProfiles } from '@/lib/manageUsers';
 import { getErrorMessage } from '@/lib/errors';
@@ -11,9 +11,10 @@ interface PlayersPanelProps {
   players: Player[];
   onAddPlayer: (name: string) => Promise<void>;
   onLinkPlayer: (playerId: string, profileId: string | null) => Promise<void>;
+  onDeletePlayer: (playerId: string) => Promise<void>;
 }
 
-export default function PlayersPanel({ players, onAddPlayer, onLinkPlayer }: PlayersPanelProps) {
+export default function PlayersPanel({ players, onAddPlayer, onLinkPlayer, onDeletePlayer }: PlayersPanelProps) {
   const [name, setName] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -61,6 +62,13 @@ export default function PlayersPanel({ players, onAddPlayer, onLinkPlayer }: Pla
     void runAction(() => onLinkPlayer(playerId, profileId || null));
   };
 
+  const handleDelete = (player: Player) => {
+    if (!window.confirm(`Apakah Anda yakin ingin menghapus pemain ${player.name}? Data riwayat pertandingan pemain ini akan terpengaruh.`)) {
+      return;
+    }
+    void runAction(() => onDeletePlayer(player.id));
+  };
+
   return (
     <div className="flex flex-col gap-6">
       <section>
@@ -95,7 +103,19 @@ export default function PlayersPanel({ players, onAddPlayer, onLinkPlayer }: Pla
               key={player.id}
               className="flex flex-col gap-2 rounded-xl border-2 border-white/10 bg-white/5 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
             >
-              <span className="font-display text-base font-bold">{player.name}</span>
+              <div className="flex min-w-0 items-center justify-between gap-3">
+                <span className="font-display text-base font-bold">{player.name}</span>
+                <button
+                  type="button"
+                  onClick={() => handleDelete(player)}
+                  disabled={saving}
+                  aria-label={`Hapus pemain ${player.name}`}
+                  title="Hapus pemain"
+                  className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-loss/40 text-loss transition hover:bg-loss/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-loss disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <Trash2 className="h-4 w-4" aria-hidden="true" />
+                </button>
+              </div>
               <select
                 aria-label={`Akun untuk ${player.name}`}
                 value={player.profileId ?? ''}

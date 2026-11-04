@@ -6,6 +6,7 @@ import {
   insertMatch,
   insertPlayer,
   linkPlayerToProfile,
+  removePlayer,
   removeMatch,
   reviewMatch,
   updateMatch,
@@ -49,6 +50,14 @@ export function useClubData() {
   const addPlayer = useCallback(
     async (name: string) => {
       await insertPlayer(name);
+      await load();
+    },
+    [load],
+  );
+
+  const deletePlayer = useCallback(
+    async (playerId: string) => {
+      await removePlayer(playerId);
       await load();
     },
     [load],
@@ -99,6 +108,7 @@ export function useClubData() {
     reload: load,
     addPlayer,
     linkPlayer,
+    deletePlayer,
     saveMatch,
     approveOrRejectMatch,
     deleteMatch,

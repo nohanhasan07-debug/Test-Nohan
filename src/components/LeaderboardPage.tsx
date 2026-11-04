@@ -36,7 +36,20 @@ interface LeaderboardPageProps {
 }
 
 export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageProps) {
-  const { players, matches, reviewMatches, loaded, loadError, reload, addPlayer, linkPlayer, saveMatch, approveOrRejectMatch, deleteMatch } =
+  const {
+    players,
+    matches,
+    reviewMatches,
+    loaded,
+    loadError,
+    reload,
+    addPlayer,
+    linkPlayer,
+    deletePlayer,
+    saveMatch,
+    approveOrRejectMatch,
+    deleteMatch,
+  } =
     useClubData();
   const isMaster = profile.role === 'master';
   const pendingMatches = useMemo(() => reviewMatches.filter((match) => match.status === 'pending'), [reviewMatches]);
@@ -234,6 +247,7 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
           players={players}
           onAddPlayer={addPlayer}
           onLinkPlayer={linkPlayer}
+          onDeletePlayer={deletePlayer}
           onClose={() => setSettingsOpen(false)}
         />
       )}
