@@ -1,6 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { RotateCw } from 'lucide-react';
 import ApprovalsView from '@/components/ApprovalsView';
+import DailyRecap from '@/components/DailyRecap';
 import Header, { type AppView } from '@/components/Header';
 import HeadToHeadView from '@/components/HeadToHeadView';
 import MatchFormModal from '@/components/MatchFormModal';
@@ -60,6 +61,8 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
   const [view, setView] = useState<AppView>('leaderboard');
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [tab, setTab] = useState<LeaderboardTab>('standings');
+  const [standingsMode, setStandingsMode] = useState<'overall' | 'daily'>('overall');
+  const [dailyDate, setDailyDate] = useState('');
   const [seasonMode, setSeasonMode] = useState<SeasonMode>('active');
   const [archiveKey, setArchiveKey] = useState('');
   const [formState, setFormState] = useState<{ match?: Match } | null>(null);
@@ -70,6 +73,15 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
   const todayIso = toIsoDate(today);
   const activeKey = getSeasonKey(todayIso);
   const monthKey = getMonthKey(todayIso);
+
+  const dailyDates = useMemo(
+    () => [...new Set(matches.map((match) => match.date))].sort((a, b) => b.localeCompare(a)),
+    [matches],
+  );
+
+  useEffect(() => {
+    if (!dailyDate && dailyDates.length > 0) setDailyDate(dailyDates[0]);
+  }, [dailyDate, dailyDates]);
 
   const archiveSeasons = getArchiveSeasons(matches, activeKey);
   const resolvedArchiveKey = archiveSeasons.includes(archiveKey) ? archiveKey : (archiveSeasons[0] ?? '');
@@ -113,7 +125,8 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
     setSubmitNotice(matchId || isMaster ? null : 'Pertandingan terkirim dan menunggu persetujuan master.');
   };
 
-  const isEmptyArchive = tab !== 'h2h' && seasonMode === 'archive' && archiveSeasons.length === 0;
+  const isEmptyArchive =
+    tab !== 'h2h' && standingsMode === 'overall' && seasonMode === 'archive' && archiveSeasons.length === 0;
 
   return (
     <div className="min-h-screen">
@@ -164,8 +177,32 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
             )}
 
             <section className="mt-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              <TabSwitcher tab={tab} onChange={setTab} />
-              {tab !== 'h2h' && (
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                <TabSwitcher tab={tab} onChange={setTab} />
+                {tab === 'standings' && (
+                  <div className="flex w-full rounded-full border-2 border-white/20 bg-white/5 p-1 sm:w-auto">
+                    <button
+                      type="button"
+                      onClick={() => setStandingsMode('overall')}
+                      className={`flex-1 whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-semibold transition sm:flex-none ${
+                        standingsMode === 'overall' ? 'bg-paper text-ink-950 shadow' : 'text-paper/75 hover:bg-white/10'
+                      }`}
+                    >
+                      Keseluruhan
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setStandingsMode('daily')}
+                      className={`flex-1 whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-semibold transition sm:flex-none ${
+                        standingsMode === 'daily' ? 'bg-neon text-ink-950 shadow' : 'text-paper/75 hover:bg-white/10'
+                      }`}
+                    >
+                      Harian
+                    </button>
+                  </div>
+                )}
+              </div>
+              {tab !== 'h2h' && standingsMode === 'overall' && (
                 <SeasonFilter
                   mode={seasonMode}
                   onModeChange={setSeasonMode}
@@ -177,7 +214,7 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
               )}
             </section>
 
-            {tab !== 'h2h' && (
+            {tab !== 'h2h' && standingsMode === 'overall' && (
               <p className="mt-4 text-xs font-semibold uppercase tracking-[0.2em] text-paper/70">
                 {seasonMode === 'all' ? 'All-Time' : getSeasonLabel(seasonView.kind === 'season' ? seasonView.key : activeKey)}
               </p>
@@ -201,6 +238,14 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
                   <p className="font-display text-lg font-bold">Hall of Fame masih kosong</p>
                   <p className="mt-1 text-sm text-paper/70">Arsip akan muncul setelah season berganti.</p>
                 </div>
+              ) : tab === 'standings' && standingsMode === 'daily' ? (
+                <DailyRecap
+                  players={players}
+                  matches={matches}
+                  date={dailyDate || dailyDates[0] || todayIso}
+                  dates={dailyDates}
+                  onDateChange={setDailyDate}
+                />
               ) : tab === 'standings' ? (
                 <StandingsView standings={standings} form={playerForm} />
               ) : tab === 'h2h' ? (

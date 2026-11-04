@@ -19,6 +19,16 @@ export function getSeasonLabel(seasonKey: string): string {
   return `Season ${half} · ${year}`;
 }
 
+export function formatDailyDate(isoDate: string): string {
+  const [year, month, day] = isoDate.split('-').map(Number);
+  return new Date(year, month - 1, day).toLocaleDateString('id-ID', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
+}
+
 export function formatDisplayDate(isoDate: string): string {
   const [year, month, day] = isoDate.split('-').map(Number);
   return new Date(year, month - 1, day).toLocaleDateString('id-ID', {

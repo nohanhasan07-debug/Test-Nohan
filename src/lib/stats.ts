@@ -79,6 +79,16 @@ export function sortStandings(list: PlayerStats[]): PlayerStats[] {
   );
 }
 
+export function sortDailyStandings(list: PlayerStats[]): PlayerStats[] {
+  return [...list].sort(
+    (a, b) =>
+      b.pts - a.pts ||
+      b.gd - a.gd ||
+      b.w - a.w ||
+      a.name.localeCompare(b.name),
+  );
+}
+
 export function sortByWinRate(list: PlayerStats[]): PlayerStats[] {
   return [...list].sort(
     (a, b) =>
