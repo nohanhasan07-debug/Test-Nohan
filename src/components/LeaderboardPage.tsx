@@ -45,9 +45,6 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
     loaded,
     loadError,
     reload,
-    addPlayer,
-    linkPlayer,
-    deletePlayer,
     saveMatch,
     approveOrRejectMatch,
     deleteMatch,
@@ -321,14 +318,7 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
       )}
 
       {settingsOpen && isMaster && (
-        <SettingsModal
-          currentUserId={profile.id}
-          players={players}
-          onAddPlayer={addPlayer}
-          onLinkPlayer={linkPlayer}
-          onDeletePlayer={deletePlayer}
-          onClose={() => setSettingsOpen(false)}
-        />
+        <SettingsModal currentUserId={profile.id} onClose={() => setSettingsOpen(false)} />
       )}
     </div>
   );

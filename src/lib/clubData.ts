@@ -21,7 +21,6 @@ interface MatchRow {
 
 const LOAD_ERROR = 'Data klub tidak bisa dimuat. Coba lagi.';
 const SAVE_ERROR = 'Perubahan belum tersimpan. Coba lagi.';
-const UNIQUE_VIOLATION = '23505';
 
 const toPlayer = (row: PlayerRow): Player => ({
   id: row.id,
@@ -66,29 +65,6 @@ export async function fetchMatches(): Promise<Match[]> {
     .order('match_date', { ascending: false });
   if (error || !data) throw new Error(LOAD_ERROR);
   return (data as MatchRow[]).map(toMatch);
-}
-
-export async function insertPlayer(name: string): Promise<void> {
-  const { error } = await supabase.from('club_players').insert({ name });
-  if (error?.code === UNIQUE_VIOLATION) throw new Error('Nama pemain sudah terdaftar.');
-  if (error) throw new Error(SAVE_ERROR);
-}
-
-export async function removePlayer(playerId: string): Promise<void> {
-  const { error } = await supabase.rpc('delete_club_player', { p_player_id: playerId });
-  if (error?.message.includes('player has match history')) {
-    throw new Error('Pemain tidak dapat dihapus karena masih terikat riwayat pertandingan.');
-  }
-  if (error) throw new Error('Pemain tidak dapat dihapus. Coba lagi.');
-}
-
-export async function linkPlayerToProfile(playerId: string, profileId: string | null): Promise<void> {
-  const { error } = await supabase
-    .from('club_players')
-    .update({ profile_id: profileId })
-    .eq('id', playerId);
-  if (error?.code === UNIQUE_VIOLATION) throw new Error('Akun ini sudah terhubung ke pemain lain.');
-  if (error) throw new Error(SAVE_ERROR);
 }
 
 export async function insertMatch(input: MatchInput, status: 'pending' | 'approved'): Promise<void> {

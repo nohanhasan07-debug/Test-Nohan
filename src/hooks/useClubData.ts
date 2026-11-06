@@ -4,9 +4,6 @@ import {
   fetchMatches,
   fetchPlayers,
   insertMatch,
-  insertPlayer,
-  linkPlayerToProfile,
-  removePlayer,
   removeMatch,
   reviewMatch,
   updateMatch,
@@ -47,30 +44,6 @@ export function useClubData() {
     void load();
   }, [load]);
 
-  const addPlayer = useCallback(
-    async (name: string) => {
-      await insertPlayer(name);
-      await load();
-    },
-    [load],
-  );
-
-  const deletePlayer = useCallback(
-    async (playerId: string) => {
-      await removePlayer(playerId);
-      await load();
-    },
-    [load],
-  );
-
-  const linkPlayer = useCallback(
-    async (playerId: string, profileId: string | null) => {
-      await linkPlayerToProfile(playerId, profileId);
-      await load();
-    },
-    [load],
-  );
-
   const saveMatch = useCallback(
     async (input: MatchInput, options: SaveOptions) => {
       if (options.matchId) {
@@ -106,9 +79,6 @@ export function useClubData() {
     loaded,
     loadError,
     reload: load,
-    addPlayer,
-    linkPlayer,
-    deletePlayer,
     saveMatch,
     approveOrRejectMatch,
     deleteMatch,

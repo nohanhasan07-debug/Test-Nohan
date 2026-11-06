@@ -31,7 +31,7 @@ export default function PerformancePage({ player, players, matches }: Performanc
         <UserX className="h-10 w-10 text-paper/70" aria-hidden="true" />
         <p className="mt-3 font-display text-lg font-bold">Akun Anda belum terhubung ke pemain</p>
         <p className="mt-1 max-w-sm text-sm text-paper/70">
-          Minta master admin menghubungkan akun Anda ke nama pemain lewat Pengaturan, lalu Performa Saya akan menampilkan riwayat Anda.
+          Akun Anda seharusnya otomatis terhubung saat dibuat. Hubungi master admin jika data Anda belum muncul.
         </p>
       </div>
     );
