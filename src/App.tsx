@@ -1,10 +1,15 @@
+import { useState } from 'react';
 import ClubLogo from '@/components/ClubLogo';
 import AuthPage from '@/components/AuthPage';
 import LeaderboardPage from '@/components/LeaderboardPage';
+import { PlayerCardsView } from '@/components/PlayerCardsView';
 import { useAuth } from '@/hooks/useAuth';
 
 function App() {
   const { state, signIn, signUp, signOut } = useAuth();
+  
+  // State untuk mengontrol menu/halaman yang sedang aktif ('leaderboard' atau 'cards')
+  const [currentView, setCurrentView] = useState<'leaderboard' | 'cards'>('leaderboard');
 
   // 1. TAMPILAN LOADING (EDITORIAL AMBIENT GLOW)
   if (state.status === 'loading') {
@@ -63,10 +68,40 @@ function App() {
     );
   }
 
-  // 4. TAMPILAN UTAMA
+  // 4. TAMPILAN UTAMA (DENGAN DUKUNGAN NAVIGASI VIEWS)
   return (
     <div className="min-h-screen bg-transparent text-[#FDF8F5]">
-      <LeaderboardPage profile={state.profile} onSignOut={signOut} />
+      {/* Tombol Sementara Pengalih Menu (Bisa ditaruh di sidebar komponen Leaderboard nanti) */}
+      <div className="fixed top-4 right-6 z-50 flex items-center gap-2 bg-black/60 backdrop-blur-md border border-white/15 px-3 py-1.5 rounded-full shadow-lg">
+        <button
+          onClick={() => setCurrentView('leaderboard')}
+          className={`text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full transition-all ${
+            currentView === 'leaderboard' ? 'bg-[#FF7A45] text-white' : 'text-white/60 hover:text-white'
+          }`}
+        >
+          Klasemen
+        </button>
+        <button
+          onClick={() => setCurrentView('cards')}
+          className={`text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full transition-all ${
+            currentView === 'cards' ? 'bg-[#FF7A45] text-white' : 'text-white/60 hover:text-white'
+          }`}
+        >
+          Player Cards 👑
+        </button>
+      </div>
+
+      {/* Render Halaman Berdasarkan State currentView */}
+      {currentView === 'leaderboard' ? (
+        <LeaderboardPage profile={state.profile} onSignOut={signOut} />
+      ) : (
+        <PlayerCardsView
+          players={[]} // Sambungkan dengan state data players dari hook atau database jika ada
+          matches={[]} // Sambungkan dengan state data matches dari hook atau database jika ada
+          currentUserEmail={state.profile.email}
+          currentUserRole={state.profile.role}
+        />
+      )}
     </div>
   );
 }
