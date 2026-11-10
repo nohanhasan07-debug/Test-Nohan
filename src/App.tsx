@@ -1,16 +1,61 @@
+import { useState, useEffect } from 'react';
 import ClubLogo from '@/components/ClubLogo';
 import AuthPage from '@/components/AuthPage';
 import LeaderboardPage from '@/components/LeaderboardPage';
+import { PlayerCardsView } from '@/components/PlayerCardsView';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/lib/supabase';
+import { Player, Match } from '@/types/playerCard';
 
 function App() {
   const { state, signIn, signUp, signOut } = useAuth();
+
+  // State navigasi tampilan utama ('leaderboard' atau 'cards')
+  const [currentView, setCurrentView] = useState<'leaderboard' | 'cards'>('leaderboard');
+  const [players, setPlayers] = useState<Player[]>([]);
+  const [matches, setMatches] = useState<Match[]>([]);
+
+  // Fetch data players & matches dari Supabase saat user sudah login
+  useEffect(() => {
+    if (state.status === 'signed-in' && state.profile) {
+      async function fetchData() {
+        try {
+          // 1. Ambil data dari tabel players (fallback otomatis ke profiles jika tabel players belum terisi)
+          const { data: playersData } = await supabase.from('players').select('*');
+          if (playersData && playersData.length > 0) {
+            setPlayers(playersData as Player[]);
+          } else {
+            const { data: profilesData } = await supabase.from('profiles').select('*');
+            if (profilesData) {
+              setPlayers(
+                profilesData.map((p: any) => ({
+                  id: p.id,
+                  name: p.displayName || p.name || p.username || 'Member PATC',
+                  profileId: p.id,
+                  photo_url: p.photo_url || null,
+                }))
+              );
+            }
+          }
+
+          // 2. Ambil data matches dari Supabase
+          const { data: matchesData } = await supabase.from('matches').select('*');
+          if (matchesData) {
+            setMatches(matchesData as Match[]);
+          }
+        } catch (err) {
+          console.error('Gagal mengambil data untuk Player Cards:', err);
+        }
+      }
+      fetchData();
+    }
+  }, [state.status, state.profile]);
 
   // 1. TAMPILAN LOADING (EDITORIAL AMBIENT GLOW)
   if (state.status === 'loading') {
     return (
       <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-[#0F0402] px-4">
-        {/* Glow ambient terakota */}
+        {/* Ambient glow terakota */}
         <div className="absolute h-96 w-96 rounded-full bg-[#B84013]/20 blur-[120px] pointer-events-none" />
         <div className="relative flex flex-col items-center">
           <div className="relative mb-6">
@@ -35,7 +80,7 @@ function App() {
     return <AuthPage onSignIn={signIn} onSignUp={signUp} />;
   }
 
-  // 3. TAMPILAN ERROR JIKA PROFIL BELUM ADA
+  // 3. TAMPILAN ERROR JIKA PROFIL BELUM TERDAFTAR
   if (!state.profile) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#0F0402] px-4">
@@ -63,10 +108,49 @@ function App() {
     );
   }
 
-  // 4. TAMPILAN UTAMA
+  // Fallback pengenal email/username untuk pengecekan admin
+  const currentUserIdent = (state.profile as any).email || state.profile.username || '';
+
+  // 4. TAMPILAN UTAMA (KLASMEN & PLAYER CARDS)
   return (
     <div className="min-h-screen bg-transparent text-[#FDF8F5]">
-      <LeaderboardPage profile={state.profile} onSignOut={signOut} />
+      {/* Pengalih Menu (Floating Pill Nav) */}
+      <div className="fixed top-4 right-6 z-50 flex items-center gap-2 bg-black/70 backdrop-blur-md border border-white/15 px-3 py-1.5 rounded-full shadow-2xl">
+        <button
+          type="button"
+          onClick={() => setCurrentView('leaderboard')}
+          className={`text-[11px] font-bold uppercase tracking-wider px-3.5 py-1 rounded-full transition-all ${
+            currentView === 'leaderboard'
+              ? 'bg-[#FF7A45] text-white shadow-md'
+              : 'text-white/60 hover:text-white'
+          }`}
+        >
+          Klasemen
+        </button>
+        <button
+          type="button"
+          onClick={() => setCurrentView('cards')}
+          className={`text-[11px] font-bold uppercase tracking-wider px-3.5 py-1 rounded-full transition-all ${
+            currentView === 'cards'
+              ? 'bg-[#FF7A45] text-white shadow-md'
+              : 'text-white/60 hover:text-white'
+          }`}
+        >
+          Player Cards 👑
+        </button>
+      </div>
+
+      {/* Render Berdasarkan View Aktif */}
+      {currentView === 'leaderboard' ? (
+        <LeaderboardPage profile={state.profile} onSignOut={signOut} />
+      ) : (
+        <PlayerCardsView
+          players={players}
+          matches={matches}
+          currentUserEmail={currentUserIdent}
+          currentUserRole={state.profile.role || 'member'}
+        />
+      )}
     </div>
   );
 }
