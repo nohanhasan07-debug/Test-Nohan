@@ -122,6 +122,9 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
   const displayName = profile.username || 'Admin';
   const initialLetter = displayName.slice(0, 2).toUpperCase();
 
+  // Nama akun dinamis untuk ucapan motivasi
+  const accountMotivationName = (profile?.username || displayName || 'PATC').toUpperCase();
+
   const renderContent = () => {
     if (!loaded) {
       return (
@@ -226,9 +229,7 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
           </div>
         </div>
 
-        {/* ======================================================== */}
         {/* HEADER KLASEMEN & TOGGLE SWITCH [ KESELURUHAN | HARIAN ] */}
-        {/* ======================================================== */}
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-3 pt-2">
           <div className="flex items-center gap-3">
             <h2 className="font-serif text-base sm:text-lg font-bold tracking-widest text-[#FDF8F5] uppercase">
@@ -237,7 +238,6 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
 
             {/* Toggle Switch Kontras Tinggi */}
             <div className="flex items-center gap-2">
-              {/* Tombol Switch Knob */}
               <button
                 type="button"
                 role="switch"
@@ -260,12 +260,10 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
 
               {/* Teks [ KESELURUHAN | HARIAN ] */}
               <div className="flex items-center gap-1.5 text-[11px] sm:text-xs font-sans tracking-wider uppercase select-none">
-                {/* Kurung Buka */}
                 <span style={{ color: '#FDF8F5' }} className="font-bold">
                   [
                 </span>
 
-                {/* Mode KESELURUHAN */}
                 <button
                   type="button"
                   onClick={() => setStandingsMode('overall')}
@@ -281,12 +279,10 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
                   Keseluruhan
                 </button>
 
-                {/* Simbol Pemisah | */}
                 <span style={{ color: '#FDF8F5' }} className="font-bold px-0.5">
                   |
                 </span>
 
-                {/* Mode HARIAN */}
                 <button
                   type="button"
                   onClick={() => setStandingsMode('daily')}
@@ -302,7 +298,6 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
                   Harian
                 </button>
 
-                {/* Kurung Tutup */}
                 <span style={{ color: '#FDF8F5' }} className="font-bold">
                   ]
                 </span>
@@ -471,6 +466,15 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
                   })}
                 </tbody>
               </table>
+            </div>
+
+            {/* ======================================================== */}
+            {/* UCAPAN MOTIVASI: "VAMOS [NAMA AKUN]!" PERSIS DI BAWAH TABEL */}
+            {/* ======================================================== */}
+            <div className="mt-8 mb-12 flex flex-col items-center justify-center text-center select-none py-2">
+              <h3 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-extrabold italic uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-[#FF7A45] via-[#FDF8F5] to-[#FF7A45] drop-shadow-[0_2px_12px_rgba(255,122,69,0.35)]">
+                VAMOS {accountMotivationName}!
+              </h3>
             </div>
           </div>
         )}
