@@ -1,7 +1,5 @@
 export type MatchFormat = 'singles' | 'doubles';
 
-export type LeaderboardTab = 'standings' | 'winrate' | 'history' | 'h2h';
-
 export type AccountRole = 'master' | 'member';
 
 export interface Profile {
@@ -9,12 +7,14 @@ export interface Profile {
   username: string;
   displayName: string;
   role: AccountRole;
+  photo_url?: string | null; // Ditambahkan untuk menampung foto profil
 }
 
 export interface Player {
   id: string;
   name: string;
   profileId: string | null;
+  photo_url?: string | null; // Ditambahkan untuk dukungan foto
 }
 
 export type MatchStatus = 'pending' | 'approved' | 'rejected';
@@ -29,20 +29,17 @@ export interface Match {
   gamesB: number;
   status: MatchStatus;
   createdBy: string | null;
+  created_at?: string;
 }
 
-export type MatchInput = Pick<Match, 'date' | 'format' | 'teamA' | 'teamB' | 'gamesA' | 'gamesB'>;
-
-export interface PlayerStats {
-  playerId: string;
-  name: string;
-  mp: number;
-  w: number;
-  d: number;
-  l: number;
-  gw: number;
-  gl: number;
-  gd: number;
-  pts: number;
-  winRate: number;
+export interface PlayerMonthlyStats {
+  player: {
+    id: string;
+    name: string;
+    photo_url?: string | null;
+  };
+  totalMatches: number;
+  wins: number;
+  losses: number;
+  winRate: number; // Persentase (0 - 100)
 }
