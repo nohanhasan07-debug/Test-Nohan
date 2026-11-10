@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600;1,700&family=Work+Sans:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Playfair+Display:ital,wght@0,600;0,700;0,800;0,900;1,600;1,700&family=Work+Sans:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,12 +6,25 @@
 
 @layer base {
   body {
-    @apply bg-ink-950 text-paper font-sans antialiased selection:bg-neon selection:text-ink-950;
-    /* Grid mikro mewah terinspirasi tekstur lapangan hardcourt */
-    background-image: 
-      radial-gradient(ellipse at top, rgba(255, 255, 255, 0.02) 0%, transparent 70%),
-      linear-gradient(to right, rgba(255, 255, 255, 0.015) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
-    background-size: 100% 100%, 32px 32px, 32px 32px;
+    @apply font-sans antialiased text-[#FDF8F5];
+    background: linear-gradient(180deg, #B84013 0%, #4A1504 35%, #0F0402 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
   }
+}
+
+/* Scrollbar mikro halus untuk tabel mobile */
+::-webkit-scrollbar {
+  height: 4px;
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(15, 4, 2, 0.6);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 122, 69, 0.3);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 122, 69, 0.6);
 }
