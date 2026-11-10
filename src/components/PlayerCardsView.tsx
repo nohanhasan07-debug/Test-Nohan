@@ -25,8 +25,16 @@ export const PlayerCardsView: React.FC<PlayerCardsViewProps> = ({
   // Ref container tersembunyi khusus render Story IG 9:16
   const storyExportRef = useRef<HTMLDivElement>(null);
 
+  // Sinkronisasi local state jika props players berubah
+  React.useEffect(() => {
+    if (players && players.length > 0) {
+      setPlayerList(players);
+    }
+  }, [players]);
+
   // Verifikasi Role Master Admin
   const isMasterAdmin =
+    currentUserRole === 'master' ||
     currentUserRole === 'admin' ||
     currentUserEmail.toLowerCase().includes('admin') ||
     currentUserEmail.toLowerCase().endsWith('@admin');
@@ -38,47 +46,53 @@ export const PlayerCardsView: React.FC<PlayerCardsViewProps> = ({
 
   const monthlyStatsMap = useMemo(() => {
     const now = new Date();
-    // Rentang tanggal 1 s/d hari terakhir bulan ini
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0);
     const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
 
-    // Filter match yang HANYA berlangsung di bulan ini
+    // Filter match yang HANYA berlangsung di bulan ini dan sudah 'approved' (jika ada status)
     const currentMonthMatches = matches.filter((m) => {
       const matchDate = new Date(m.date || m.created_at || '');
-      return matchDate >= startOfMonth && matchDate <= endOfMonth;
+      const isValidDate = matchDate >= startOfMonth && matchDate <= endOfMonth;
+      const isApproved = m.status ? m.status === 'approved' : true;
+      return isValidDate && isApproved;
     });
 
     const stats: Record<string, { total: number; wins: number; losses: number }> = {};
 
-    // Inisialisasi seluruh pemain
     playerList.forEach((p) => {
       stats[p.id] = { total: 0, wins: 0, losses: 0 };
     });
 
-    // Kalkulasi hasil match
+    // Kalkulasi menggunakan format teamA dan teamB
     currentMonthMatches.forEach((match) => {
-      const team1 = [match.team1_player1_id, match.team1_player2_id].filter(Boolean) as string[];
-      const team2 = [match.team2_player1_id, match.team2_player2_id].filter(Boolean) as string[];
+      const teamA = match.teamA || [];
+      const teamB = match.teamB || [];
+      
+      const gamesA = match.gamesA || 0;
+      const gamesB = match.gamesB || 0;
 
-      team1.forEach((id) => {
+      // Tentukan pemenang berdasarkan games terbanyak
+      const isTeamAWon = gamesA > gamesB;
+      const isTeamBWon = gamesB > gamesA;
+
+      teamA.forEach((id) => {
         if (!stats[id]) stats[id] = { total: 0, wins: 0, losses: 0 };
         stats[id].total += 1;
-        if (match.winner_team === 1) stats[id].wins += 1;
-        else stats[id].losses += 1;
+        if (isTeamAWon) stats[id].wins += 1;
+        else if (isTeamBWon) stats[id].losses += 1;
       });
 
-      team2.forEach((id) => {
+      teamB.forEach((id) => {
         if (!stats[id]) stats[id] = { total: 0, wins: 0, losses: 0 };
         stats[id].total += 1;
-        if (match.winner_team === 2) stats[id].wins += 1;
-        else stats[id].losses += 1;
+        if (isTeamBWon) stats[id].wins += 1;
+        else if (isTeamAWon) stats[id].losses += 1;
       });
     });
 
     return stats;
   }, [playerList, matches]);
 
-  // Ranking pemain bulan berjalan
   const rankedMonthlyPlayers: PlayerMonthlyStats[] = useMemo(() => {
     const list = playerList.map((player) => {
       const s = monthlyStatsMap[player.id] || { total: 0, wins: 0, losses: 0 };
@@ -92,7 +106,6 @@ export const PlayerCardsView: React.FC<PlayerCardsViewProps> = ({
       };
     });
 
-    // Urutkan: Win Rate tertinggi -> Total Matches terbanyak -> Nama
     return list.sort((a, b) => {
       if (b.winRate !== a.winRate) return b.winRate - a.winRate;
       if (b.totalMatches !== a.totalMatches) return b.totalMatches - a.totalMatches;
@@ -100,7 +113,6 @@ export const PlayerCardsView: React.FC<PlayerCardsViewProps> = ({
     });
   }, [playerList, monthlyStatsMap]);
 
-  // Player of the Month adalah ranking #1
   const potmCandidate = rankedMonthlyPlayers[0] || null;
 
   // --- 2. FITUR GENERATE BANNER IG STORY (9:16 HIGH RESOLUTION) ---
@@ -111,7 +123,7 @@ export const PlayerCardsView: React.FC<PlayerCardsViewProps> = ({
       setIsGeneratingBanner(true);
 
       const canvas = await html2canvas(storyExportRef.current, {
-        scale: 3, // Skala 3x untuk hasil tajam di Instagram
+        scale: 3,
         useCORS: true,
         backgroundColor: '#0F0402',
         logging: false,
@@ -123,7 +135,6 @@ export const PlayerCardsView: React.FC<PlayerCardsViewProps> = ({
       const cleanPlayerName = potmCandidate.player.name.replace(/\s+/g, '_').toUpperCase();
       const fileName = `POTM_${cleanPlayerName}_${monthYearStr}.png`;
 
-      // Trigger download otomatis
       const link = document.createElement('a');
       link.href = image;
       link.download = fileName;
@@ -136,21 +147,29 @@ export const PlayerCardsView: React.FC<PlayerCardsViewProps> = ({
     }
   };
 
-  // Callback update foto setelah sukses diupload
   const handlePhotoUpdateSuccess = (updatedPlayer: Player) => {
     setPlayerList((prev) =>
       prev.map((p) => (p.id === updatedPlayer.id ? updatedPlayer : p))
     );
   };
 
+  // Pengaman jika data masih kosong
+  if (!playerList || playerList.length === 0) {
+    return (
+      <div className="min-h-screen bg-[#0F0402] text-white flex flex-col items-center justify-center p-6 text-center">
+        <div className="w-12 h-12 border-4 border-[#FF7A45] border-t-transparent rounded-full animate-spin mb-4" />
+        <h2 className="text-xl font-bold uppercase tracking-wider">Memuat Player Cards...</h2>
+        <p className="text-xs text-white/50 mt-2">Menarik data member dari database.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="relative min-h-screen bg-gradient-to-b from-[#B84013] via-[#4A1504] to-[#0F0402] text-[#FDF8F5] px-4 py-8 md:py-12 overflow-hidden">
-      {/* Background Ambient Glows */}
       <div className="absolute top-10 left-1/2 -translate-x-1/2 w-96 h-96 bg-[#FF5500]/20 rounded-full blur-[140px] pointer-events-none" />
       <div className="absolute bottom-10 right-0 w-80 h-80 bg-[#B84013]/25 rounded-full blur-[120px] pointer-events-none" />
 
       <div className="max-w-6xl mx-auto space-y-12 relative z-10">
-        {/* --- HEADER TITLE --- */}
         <div className="text-center space-y-2">
           <div className="inline-flex items-center gap-2 bg-black/40 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/10 mb-2">
             <span className="w-2 h-2 rounded-full bg-[#FF7A45]" />
@@ -166,14 +185,11 @@ export const PlayerCardsView: React.FC<PlayerCardsViewProps> = ({
           </p>
         </div>
 
-        {/* --- SECTION 1: HERO POTM (PLAYER OF THE MONTH) --- */}
         {potmCandidate && (
           <div className="relative flex flex-col items-center">
-            {/* Ambient Glow Khusus POTM */}
             <div className="absolute -inset-4 bg-[#FF5500]/25 rounded-full blur-[90px] pointer-events-none" />
 
             <div className="w-full max-w-sm sm:max-w-md bg-black/40 backdrop-blur-xl border border-white/20 p-6 rounded-3xl shadow-2xl relative">
-              {/* Header Box POTM */}
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <span className="text-xl">🏆</span>
@@ -187,7 +203,6 @@ export const PlayerCardsView: React.FC<PlayerCardsViewProps> = ({
                   </div>
                 </div>
 
-                {/* Tombol Generate Banner IG (HANYA UNTUK ADMIN) */}
                 {isMasterAdmin && (
                   <button
                     type="button"
@@ -201,7 +216,6 @@ export const PlayerCardsView: React.FC<PlayerCardsViewProps> = ({
                 )}
               </div>
 
-              {/* Kartu POTM */}
               <PlayerCard
                 player={potmCandidate.player}
                 matchesCount={potmCandidate.totalMatches}
@@ -223,7 +237,6 @@ export const PlayerCardsView: React.FC<PlayerCardsViewProps> = ({
           </div>
         )}
 
-        {/* --- SECTION 2: GRID ALL PLAYER CARDS --- */}
         <div className="space-y-6">
           <div className="flex items-center justify-between border-b border-white/10 pb-4">
             <div>
@@ -258,7 +271,7 @@ export const PlayerCardsView: React.FC<PlayerCardsViewProps> = ({
         </div>
       </div>
 
-      {/* --- HIDDEN 9:16 INSTAGRAM STORY CONTAINER (UNTUK html2canvas) --- */}
+      {/* --- HIDDEN 9:16 INSTAGRAM STORY CONTAINER --- */}
       {potmCandidate && (
         <div
           style={{ position: 'absolute', left: '-9999px', top: '-9999px' }}
@@ -268,11 +281,9 @@ export const PlayerCardsView: React.FC<PlayerCardsViewProps> = ({
             ref={storyExportRef}
             className="w-[1080px] h-[1920px] bg-gradient-to-b from-[#B84013] via-[#4A1504] to-[#0F0402] flex flex-col justify-between items-center p-20 text-[#FDF8F5] relative overflow-hidden"
           >
-            {/* Background Decorative Circles */}
             <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[700px] h-[700px] bg-[#FF5500]/25 rounded-full blur-[140px]" />
             <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#B84013]/40 rounded-full blur-[120px]" />
 
-            {/* Story Top Header */}
             <div className="w-full flex flex-col items-center text-center space-y-4 z-10 pt-10">
               <div className="flex items-center gap-3 bg-black/60 backdrop-blur-xl px-8 py-3 rounded-full border border-white/20">
                 <div className="w-4 h-4 rounded-full bg-[#FF7A45] animate-ping" />
@@ -290,7 +301,6 @@ export const PlayerCardsView: React.FC<PlayerCardsViewProps> = ({
               </div>
             </div>
 
-            {/* Story Center: Card 1:1 High Res */}
             <div className="w-[780px] aspect-square z-10 shadow-[0_0_80px_rgba(255,122,69,0.4)] rounded-3xl overflow-hidden border-2 border-white/30">
               <PlayerCard
                 player={potmCandidate.player}
@@ -302,7 +312,6 @@ export const PlayerCardsView: React.FC<PlayerCardsViewProps> = ({
               />
             </div>
 
-            {/* Story Footer */}
             <div className="w-full flex flex-col items-center text-center space-y-4 z-10 pb-12">
               <h2 className="text-5xl font-black italic tracking-wide text-white drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)]">
                 VAMOS <span className="text-[#FF7A45]">{potmCandidate.player.name.toUpperCase()}</span>!
@@ -318,7 +327,6 @@ export const PlayerCardsView: React.FC<PlayerCardsViewProps> = ({
         </div>
       )}
 
-      {/* --- MODAL UPLOAD FOTO ADMIN --- */}
       {selectedPlayerForEdit && (
         <AdminPhotoUploadModal
           player={selectedPlayerForEdit}
