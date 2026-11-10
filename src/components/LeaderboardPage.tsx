@@ -102,20 +102,13 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
     return best;
   }, [players, playerForm]);
 
-  // ========================================================
-  // FORMULA & FORMAT KALKULASI WIN RATE (ANTI-BUG 7500%)
-  // ========================================================
+  // Kalkulasi Win Rate Presisi (1 Desimal, Anti-Bug 7500%)
   const formattedWinRate = useMemo(() => {
     if (!potm || potm.winRate === undefined || potm.winRate === null) return '0%';
     let rate = potm.winRate;
-
-    // Normalisasi jika masih dalam bentuk desimal 0 - 1 (contoh: 0.7534 -> 75.34)
     if (rate > 0 && rate <= 1) {
       rate = rate * 100;
     }
-
-    // Jika pas bilangan bulat (misal 75%), tampilkan tanpa koma.
-    // Jika pecahan (misal 75.34%), bulatkan 1 desimal menjadi "75,3%"
     return rate % 1 === 0 ? `${rate.toFixed(0)}%` : `${rate.toFixed(1).replace('.', ',')}%`;
   }, [potm]);
 
@@ -143,9 +136,9 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
   const renderContent = () => {
     if (!loaded) {
       return (
-        <div className="py-20 text-center">
+        <div className="py-24 text-center">
           <p className="font-serif tracking-widest text-xs uppercase text-[#FF7A45] animate-pulse">
-            Memuat Data Pertandingan...
+            Memuat Data Klub...
           </p>
         </div>
       );
@@ -153,13 +146,13 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
 
     if (loadError) {
       return (
-        <div className="flex flex-col items-center gap-4 rounded-3xl border border-red-500/30 bg-[#1A0A06]/60 p-8 text-center backdrop-blur-md">
+        <div className="flex flex-col items-center gap-4 rounded-3xl border border-red-500/30 bg-[#1A0A06]/70 p-8 text-center backdrop-blur-md">
           <p className="font-serif text-lg font-bold text-red-400">Data klub tidak bisa dimuat</p>
           <p className="text-xs text-[#FDF8F5]/70">{loadError}</p>
           <button
             type="button"
             onClick={() => void reload()}
-            className="rounded-full border border-[#FF7A45]/30 bg-[#FF7A45]/10 px-6 py-2 text-xs uppercase tracking-wider text-[#FDF8F5] transition hover:bg-[#FF7A45]/20"
+            className="rounded-full border border-[#FF7A45]/30 bg-[#FF7A45]/15 px-6 py-2 text-xs uppercase tracking-wider text-[#FDF8F5] transition hover:bg-[#FF7A45]/25"
           >
             Coba Lagi
           </button>
@@ -196,95 +189,102 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
     }
 
     return (
-      <div className="space-y-6">
-        {/* TOP STATS CARDS (3 LINGKARAN KAWAT TIPIS) */}
-        <div className="relative flex items-center justify-center gap-2 sm:gap-6 py-3">
-          {/* Stat 1: Win Rate (DENGAN PEMBULATAN 1 DESIMAL) */}
-          <div className="relative flex h-24 w-24 sm:h-28 sm:w-28 flex-col items-center justify-center rounded-full border border-white/15 bg-white/[0.03] text-center backdrop-blur-sm">
-            <span className="absolute -top-1.5 -right-1.5 text-[10px] font-mono text-white/30">+</span>
-            <Crown className="mb-0.5 h-3 w-3 text-[#D4AF37]" />
-            <p className="font-serif text-lg sm:text-xl font-bold leading-none text-[#FDF8F5]">
-              {formattedWinRate}
-            </p>
-            <p className="mt-1 text-[8px] font-sans font-medium tracking-widest text-[#FDF8F5]/80 uppercase">
-              Win Rate
-            </p>
-            <p className="truncate px-2 text-[9px] font-bold text-[#FF7A45]">
-              {potm ? potm.name : '-'}
-            </p>
-          </div>
-
-          {/* Stat 2: Total Match */}
-          <div className="relative flex h-24 w-24 sm:h-28 sm:w-28 flex-col items-center justify-center rounded-full border border-white/15 bg-white/[0.03] text-center backdrop-blur-sm">
-            <span className="absolute -top-1.5 -right-1.5 text-[10px] font-mono text-white/30">+</span>
-            <p className="font-serif text-xl sm:text-2xl font-bold leading-none text-[#FDF8F5]">
-              {viewMatches.length}
-            </p>
-            <p className="mt-1.5 text-[8px] font-sans font-medium tracking-widest text-[#FDF8F5]/80 uppercase">
-              Total Match
-            </p>
-            <p className="text-[9px] font-bold text-[#FDF8F5]">Season 2</p>
-          </div>
-
-          {/* Stat 3: Top Streak */}
-          <div className="relative flex h-24 w-24 sm:h-28 sm:w-28 flex-col items-center justify-center rounded-full border border-white/15 bg-white/[0.03] text-center backdrop-blur-sm">
-            <span className="absolute -top-1.5 -right-1.5 text-[10px] font-mono text-white/30">+</span>
-            <div className="flex items-center gap-0.5">
-              <span className="font-serif text-xl sm:text-2xl font-bold leading-none text-[#FDF8F5]">
-                {topStreak?.streak ?? 0}
-              </span>
-              <Flame className="h-4 w-4 text-[#FF7A45]" />
+      <div className="space-y-8">
+        {/* ======================================================== */}
+        {/* TOP STATS CARDS (3 LINGKARAN KAWAT DENGAN AMBIENT HALO) */}
+        {/* ======================================================== */}
+        <div className="relative flex items-center justify-center gap-3 sm:gap-8 py-2">
+          {/* Card 1: Win Rate */}
+          <div className="relative group flex flex-col items-center">
+            <div className="absolute -inset-2 rounded-full bg-[#FF5500]/30 blur-xl pointer-events-none" />
+            <div className="relative flex h-28 w-28 sm:h-32 sm:w-32 flex-col items-center justify-center rounded-full border border-white/25 bg-gradient-to-b from-[#2D0D06]/90 via-[#180602]/95 to-[#0F0402] text-center shadow-[0_0_35px_rgba(255,85,0,0.35)] backdrop-blur-md">
+              <span className="absolute -top-1.5 -right-1.5 text-[10px] font-mono text-white/30">+</span>
+              <Crown className="mb-0.5 h-3.5 w-3.5 text-[#D4AF37]" />
+              <p className="font-serif text-2xl sm:text-3xl font-extrabold leading-none text-[#FDF8F5]">
+                {formattedWinRate}
+              </p>
+              <p className="mt-1 text-[8px] font-sans font-bold tracking-widest text-[#FDF8F5]/80 uppercase">
+                Win Rate
+              </p>
+              <p className="truncate px-2 text-[10px] font-bold text-[#FF7A45]">
+                {potm ? potm.name : '-'}
+              </p>
             </div>
-            <p className="mt-1.5 text-[8px] font-sans font-medium tracking-widest text-[#FDF8F5]/80 uppercase">
-              Top Streak
-            </p>
-            <p className="truncate px-2 text-[9px] font-bold text-[#FF7A45]">
-              {topStreak?.name ?? '-'}
-            </p>
+          </div>
+
+          {/* Card 2: Total Match */}
+          <div className="relative group flex flex-col items-center">
+            <div className="absolute -inset-2 rounded-full bg-[#FF5500]/30 blur-xl pointer-events-none" />
+            <div className="relative flex h-28 w-28 sm:h-32 sm:w-32 flex-col items-center justify-center rounded-full border border-white/25 bg-gradient-to-b from-[#2D0D06]/90 via-[#180602]/95 to-[#0F0402] text-center shadow-[0_0_35px_rgba(255,85,0,0.35)] backdrop-blur-md">
+              <span className="absolute -top-1.5 -right-1.5 text-[10px] font-mono text-white/30">+</span>
+              <p className="font-serif text-2xl sm:text-3xl font-extrabold leading-none text-[#FDF8F5]">
+                {viewMatches.length}
+              </p>
+              <p className="mt-1.5 text-[8px] font-sans font-bold tracking-widest text-[#FDF8F5]/80 uppercase">
+                Total Match
+              </p>
+              <p className="text-[10px] font-bold text-[#FDF8F5]">Season 2</p>
+            </div>
+          </div>
+
+          {/* Card 3: Top Streak */}
+          <div className="relative group flex flex-col items-center">
+            <div className="absolute -inset-2 rounded-full bg-[#FF5500]/30 blur-xl pointer-events-none" />
+            <div className="relative flex h-28 w-28 sm:h-32 sm:w-32 flex-col items-center justify-center rounded-full border border-white/25 bg-gradient-to-b from-[#2D0D06]/90 via-[#180602]/95 to-[#0F0402] text-center shadow-[0_0_35px_rgba(255,85,0,0.35)] backdrop-blur-md">
+              <span className="absolute -top-1.5 -right-1.5 text-[10px] font-mono text-white/30">+</span>
+              <div className="flex items-center gap-0.5">
+                <span className="font-serif text-2xl sm:text-3xl font-extrabold leading-none text-[#FDF8F5]">
+                  {topStreak?.streak ?? 0}
+                </span>
+                <Flame className="h-4 w-4 text-[#FF7A45]" />
+              </div>
+              <p className="mt-1.5 text-[8px] font-sans font-bold tracking-widest text-[#FDF8F5]/80 uppercase">
+                Top Streak
+              </p>
+              <p className="truncate px-2 text-[10px] font-bold text-[#FF7A45]">
+                {topStreak?.name ?? '-'}
+              </p>
+            </div>
           </div>
         </div>
 
-        {/* HEADER KLASEMEN & TOGGLE SWITCH [ KESELURUHAN | HARIAN ] */}
+        {/* ======================================================== */}
+        {/* HEADER KLASEMEN, TOGGLE MODE & SELECTOR SEASON */}
+        {/* ======================================================== */}
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-3 pt-2">
           <div className="flex items-center gap-3">
-            <h2 className="font-serif text-base sm:text-lg font-bold tracking-widest text-[#FDF8F5] uppercase">
+            <h2 className="font-serif text-lg sm:text-xl font-bold tracking-widest text-[#FDF8F5] uppercase">
               Klasemen
             </h2>
 
-            {/* Toggle Switch Kontras Tinggi */}
+            {/* Toggle Switch Kontras */}
             <div className="flex items-center gap-2">
               <button
                 type="button"
                 role="switch"
-                aria-label="Toggle mode klasemen keseluruhan atau harian"
+                aria-label="Toggle mode klasemen"
                 aria-checked={standingsMode === 'daily'}
                 onClick={() => setStandingsMode(standingsMode === 'overall' ? 'daily' : 'overall')}
                 style={{
-                  backgroundColor: 'rgba(0, 0, 0, 0.55)',
-                  borderColor: 'rgba(255, 122, 69, 0.45)',
+                  backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                  borderColor: 'rgba(255, 122, 69, 0.5)',
                 }}
-                className="relative inline-flex h-5 w-10 shrink-0 cursor-pointer items-center rounded-full border transition-colors duration-200 focus:outline-none"
+                className="relative inline-flex h-5 w-10 shrink-0 cursor-pointer items-center rounded-full border transition-colors duration-200"
               >
                 <span
                   style={{ backgroundColor: '#FF7A45' }}
-                  className={`inline-block h-3.5 w-3.5 transform rounded-full shadow-[0_0_8px_rgba(255,122,69,0.6)] transition duration-200 ease-in-out ${
+                  className={`inline-block h-3.5 w-3.5 transform rounded-full shadow-[0_0_8px_rgba(255,122,69,0.7)] transition duration-200 ${
                     standingsMode === 'daily' ? 'translate-x-5' : 'translate-x-1'
                   }`}
                 />
               </button>
 
-              {/* Teks [ KESELURUHAN | HARIAN ] */}
-              <div className="flex items-center gap-1.5 text-[11px] sm:text-xs font-sans tracking-wider uppercase select-none">
-                <span style={{ color: '#FDF8F5' }} className="font-bold">
-                  [
-                </span>
-
+              <div className="flex items-center gap-1.5 text-xs font-sans tracking-wider uppercase select-none">
+                <span style={{ color: '#FDF8F5' }} className="font-bold">[</span>
                 <button
                   type="button"
                   onClick={() => setStandingsMode('overall')}
-                  style={{
-                    color: standingsMode === 'overall' ? '#FF7A45' : '#FDF8F5',
-                  }}
+                  style={{ color: standingsMode === 'overall' ? '#FF7A45' : '#FDF8F5' }}
                   className={`transition-colors cursor-pointer ${
                     standingsMode === 'overall'
                       ? 'font-bold drop-shadow-[0_1px_6px_rgba(255,122,69,0.7)]'
@@ -293,17 +293,11 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
                 >
                   Keseluruhan
                 </button>
-
-                <span style={{ color: '#FDF8F5' }} className="font-bold px-0.5">
-                  |
-                </span>
-
+                <span style={{ color: '#FDF8F5' }} className="font-bold px-0.5">|</span>
                 <button
                   type="button"
                   onClick={() => setStandingsMode('daily')}
-                  style={{
-                    color: standingsMode === 'daily' ? '#FF7A45' : '#FDF8F5',
-                  }}
+                  style={{ color: standingsMode === 'daily' ? '#FF7A45' : '#FDF8F5' }}
                   className={`transition-colors cursor-pointer ${
                     standingsMode === 'daily'
                       ? 'font-bold drop-shadow-[0_1px_6px_rgba(255,122,69,0.7)]'
@@ -312,10 +306,7 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
                 >
                   Harian
                 </button>
-
-                <span style={{ color: '#FDF8F5' }} className="font-bold">
-                  ]
-                </span>
+                <span style={{ color: '#FDF8F5' }} className="font-bold">]</span>
               </div>
             </div>
           </div>
@@ -332,7 +323,7 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
                 backgroundColor: '#120402',
                 borderColor: 'rgba(255, 122, 69, 0.45)',
               }}
-              className="cursor-pointer rounded-full border px-3 py-1 text-[11px] font-bold outline-none transition hover:border-[#FF7A45]"
+              className="cursor-pointer rounded-full border px-3 py-1 text-xs font-bold outline-none transition hover:border-[#FF7A45]"
             >
               <option value="active" style={{ backgroundColor: '#1F0703', color: '#FFFFFF' }}>
                 Season 2 ▾
@@ -356,7 +347,7 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
         ) : (
           <div>
             {/* Keterangan Simbol Legend */}
-            <div className="mb-3 flex items-center gap-4 text-[10px] text-[#FDF8F5]">
+            <div className="mb-3 flex items-center gap-4 text-xs text-[#FDF8F5]">
               <span className="flex items-center gap-1 font-medium">
                 <span className="font-bold text-[#4ADE80]">✓</span> Menang
               </span>
@@ -368,124 +359,136 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
               </span>
             </div>
 
-            {/* TABEL KLASEMEN (OVERFLOW-X-AUTO DENGAN FORMAT EDITORIAL) */}
-            <div className="overflow-x-auto rounded-2xl border border-white/10 bg-[#1A0A06]/40 backdrop-blur-md">
-              <table className="w-full min-w-[580px] text-left text-xs">
-                <thead>
-                  <tr className="border-b border-white/10 text-[10px] uppercase tracking-wider text-[#FDF8F5]/60 font-sans font-bold">
-                    <th className="py-3 pl-4 pr-1">#</th>
-                    <th className="py-3 px-2">Pemain</th>
-                    <th className="py-3 px-2 text-center">Form</th>
-                    <th className="py-3 px-2 text-center">MP</th>
-                    <th className="py-3 px-2 text-center">W</th>
-                    <th className="py-3 px-2 text-center">L</th>
-                    <th className="py-3 px-2 text-center">GD</th>
-                    <th className="py-3 pr-4 text-right">PTS</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-white/5">
-                  {standings.map((player, index) => {
-                    const formInfo = playerForm.get(player.playerId);
-                    const streakCount = formInfo?.winStreak ?? 0;
-                    const forms = formInfo?.recentForms ?? [];
+            {/* ======================================================== */}
+            {/* TABEL KLASEMEN BENING (GLASSMORPHISM TABLE) */}
+            {/* ======================================================== */}
+            <div className="relative overflow-hidden rounded-3xl border border-white/20 bg-[#120402]/40 backdrop-blur-2xl shadow-[0_25px_60px_rgba(0,0,0,0.8),inset_0_1px_1px_rgba(255,255,255,0.4),inset_0_-1px_1px_rgba(255,255,255,0.2)]">
+              {/* Garis Kilap Kaca Atas */}
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/50 to-transparent" />
 
-                    return (
-                      <tr
-                        key={player.playerId}
-                        className="group transition-colors hover:bg-white/[0.04]"
-                      >
-                        {/* Rank */}
-                        <td className="py-3.5 pl-4 pr-1 font-serif text-xs text-[#FDF8F5]/70">
-                          {index + 1} <span className="text-[#FF7A45]">•</span>
-                        </td>
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[580px] text-left text-xs">
+                  <thead>
+                    <tr className="border-b border-white/10 bg-white/5 text-[11px] uppercase tracking-wider text-[#FDF8F5]/70 font-sans font-bold">
+                      <th className="py-3.5 pl-5 pr-2">#</th>
+                      <th className="py-3.5 px-3">Pemain</th>
+                      <th className="py-3.5 px-3 text-center">Form</th>
+                      <th className="py-3.5 px-3 text-center">MP</th>
+                      <th className="py-3.5 px-3 text-center">W</th>
+                      <th className="py-3.5 px-3 text-center">L</th>
+                      <th className="py-3.5 px-3 text-center">GD</th>
+                      <th className="py-3.5 pr-5 text-right">PTS</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/5">
+                    {standings.map((player, index) => {
+                      const formInfo = playerForm.get(player.playerId);
+                      const streakCount = formInfo?.winStreak ?? 0;
+                      const forms = formInfo?.recentForms ?? [];
 
-                        {/* Nama Pemain & Hot Streak Badge */}
-                        <td className="py-3.5 px-2">
-                          <div className="flex flex-col">
-                            {streakCount >= 3 && (
-                              <span className="inline-flex items-center gap-1 text-[8px] font-bold uppercase tracking-wider text-[#FF7A45]">
-                                Hot Streak {streakCount}
+                      return (
+                        <tr
+                          key={player.playerId}
+                          className="group transition-colors hover:bg-white/[0.06]"
+                        >
+                          {/* Rank */}
+                          <td className="py-4 pl-5 pr-2 font-serif text-sm text-[#FDF8F5]/80">
+                            {index + 1} <span className="text-[#FF7A45] font-bold">•</span>
+                          </td>
+
+                          {/* Nama Pemain & Hot Streak Badge */}
+                          <td className="py-4 px-3">
+                            <div className="flex flex-col">
+                              {streakCount >= 3 && (
+                                <span className="inline-flex w-fit items-center gap-1 rounded-full border border-[#FF7A45]/40 bg-[#FF7A45]/20 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[#FF7A45] shadow-[0_0_10px_rgba(255,122,69,0.3)] mb-1">
+                                  Hot Streak {streakCount}
+                                </span>
+                              )}
+                              <span className="font-serif font-bold text-[#FDF8F5] text-base">
+                                {player.name}
                               </span>
-                            )}
-                            <span className="font-serif font-bold text-[#FDF8F5] text-sm">
-                              {player.name}
-                            </span>
-                          </div>
-                        </td>
+                            </div>
+                          </td>
 
-                        {/* Indikator Form (5 Lingkaran Halus) */}
-                        <td className="py-3.5 px-2">
-                          <div className="flex items-center justify-center gap-1">
-                            {forms.slice(-5).map((f, i) => {
-                              if (f === 'W') {
+                          {/* Indikator Form 5 Laga */}
+                          <td className="py-4 px-3">
+                            <div className="flex items-center justify-center gap-1.5">
+                              {forms.slice(-5).map((f, i) => {
+                                if (f === 'W') {
+                                  return (
+                                    <span
+                                      key={i}
+                                      title="Menang"
+                                      className="flex h-5 w-5 items-center justify-center rounded-full bg-[#D44A17] text-[10px] font-bold text-white shadow"
+                                    >
+                                      ✓
+                                    </span>
+                                  );
+                                }
+                                if (f === 'L') {
+                                  return (
+                                    <span
+                                      key={i}
+                                      title="Kalah"
+                                      className="flex h-5 w-5 items-center justify-center rounded-full border border-white/10 bg-[#2A1009] text-[10px] font-bold text-red-400"
+                                    >
+                                      ✕
+                                    </span>
+                                  );
+                                }
+                                if (f === 'D') {
+                                  return (
+                                    <span
+                                      key={i}
+                                      title="Seri"
+                                      className="flex h-5 w-5 items-center justify-center rounded-full border border-white/10 bg-[#2A1009] text-[10px] font-bold text-white/70"
+                                    >
+                                      —
+                                    </span>
+                                  );
+                                }
                                 return (
                                   <span
                                     key={i}
-                                    title="Menang"
-                                    className="flex h-5 w-5 items-center justify-center rounded-full bg-[#D44A17] text-[10px] font-bold text-white shadow"
-                                  >
-                                    ✓
-                                  </span>
+                                    className="h-5 w-5 rounded-full border border-white/10 bg-white/5"
+                                  />
                                 );
-                              }
-                              if (f === 'L') {
-                                return (
-                                  <span
-                                    key={i}
-                                    title="Kalah"
-                                    className="flex h-5 w-5 items-center justify-center rounded-full border border-white/10 bg-[#2A1009] text-[10px] font-bold text-red-400"
-                                  >
-                                    ✕
-                                  </span>
-                                );
-                              }
-                              if (f === 'D') {
-                                return (
-                                  <span
-                                    key={i}
-                                    title="Seri"
-                                    className="flex h-5 w-5 items-center justify-center rounded-full border border-white/10 bg-[#2A1009] text-[10px] font-bold text-white/70"
-                                  >
-                                    —
-                                  </span>
-                                );
-                              }
-                              return (
-                                <span
-                                  key={i}
-                                  className="h-5 w-5 rounded-full border border-white/10 bg-white/5"
-                                />
-                              );
-                            })}
-                          </div>
-                        </td>
+                              })}
+                            </div>
+                          </td>
 
-                        {/* Statistik Pertandingan */}
-                        <td className="py-3.5 px-2 text-center text-[#FDF8F5] font-mono font-medium">
-                          {player.mp}
-                        </td>
-                        <td className="py-3.5 px-2 text-center text-[#FDF8F5] font-mono font-medium">
-                          {player.w}
-                        </td>
-                        <td className="py-3.5 px-2 text-center text-[#FDF8F5] font-mono font-medium">
-                          {player.l}
-                        </td>
-                        <td className="py-3.5 px-2 text-center font-mono font-medium text-[#FDF8F5]">
-                          {player.gd > 0 ? `+${player.gd}` : player.gd}
-                        </td>
-                        <td className="py-3.5 pr-4 text-right font-serif font-bold text-sm text-[#FF7A45]">
-                          {player.pts}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                          {/* Statistik Pertandingan */}
+                          <td className="py-4 px-3 text-center text-[#FDF8F5] font-mono font-medium text-sm">
+                            {player.mp}
+                          </td>
+                          <td className="py-4 px-3 text-center text-[#FDF8F5] font-mono font-medium text-sm">
+                            {player.w}
+                          </td>
+                          <td className="py-4 px-3 text-center text-[#FDF8F5] font-mono font-medium text-sm">
+                            {player.l}
+                          </td>
+                          <td className="py-4 px-3 text-center font-mono font-medium text-sm text-[#FDF8F5]">
+                            {player.gd > 0 ? `+${player.gd}` : player.gd}
+                          </td>
+                          <td className="py-4 pr-5 text-right font-serif font-black text-lg text-[#FF7A45]">
+                            {player.pts}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Garis Kilap Kaca Bawah */}
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
             </div>
 
-            {/* UCAPAN MOTIVASI 3D: "VAMOS [NAMA AKUN]!!!" DI BAWAH TABEL */}
+            {/* ======================================================== */}
+            {/* UCAPAN MOTIVASI 3D: "VAMOS [NAMA AKUN]!!!" */}
+            {/* ======================================================== */}
             <div className="mt-12 mb-16 text-center select-none">
-              <h2 className="font-black italic text-5xl sm:text-6xl lg:text-7xl uppercase tracking-tighter transform -rotate-3 sm:-rotate-6 transition-transform duration-300">
+              <h2 className="font-black italic text-4xl sm:text-6xl uppercase tracking-tighter transform -rotate-3 select-none transition-transform">
                 <span className="block text-[#FF5500] drop-shadow-[0_8px_0_#0F0402]">
                   VAMOS
                 </span>
@@ -523,7 +526,57 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-b from-[#B84013] via-[#4A1504] to-[#0F0402] text-[#FDF8F5]">
+      {/* ======================================================== */}
+      {/* 1. ORNAMEN WATERMARK RAKET & LAPANGAN (BACKGROUND SVG) */}
+      {/* ======================================================== */}
+      {/* Racket Kiri Atas */}
+      <svg
+        className="pointer-events-none absolute -left-12 top-10 h-[520px] w-[520px] text-[#FF7A45] opacity-20 -rotate-12 blur-[0.5px]"
+        viewBox="0 0 200 400"
+        fill="none"
+        stroke="currentColor"
+      >
+        <ellipse cx="100" cy="110" rx="65" ry="85" strokeWidth="3" />
+        <path d="M50 110h100M60 80h80M60 140h80M75 50h50M75 170h50" strokeWidth="1" opacity="0.4" />
+        <path d="M100 30v160M80 40v140M120 40v140M65 60v100M135 60v100" strokeWidth="1" opacity="0.4" />
+        <path d="M75 190 L90 240 L90 380 L110 380 L110 240 L125 190" strokeWidth="3" />
+        <line x1="90" y1="270" x2="110" y2="270" strokeWidth="1.5" />
+        <line x1="90" y1="300" x2="110" y2="300" strokeWidth="1.5" />
+        <line x1="90" y1="330" x2="110" y2="330" strokeWidth="1.5" />
+      </svg>
+
+      {/* Racket Kiri Bawah */}
+      <svg
+        className="pointer-events-none absolute -left-10 bottom-4 h-[380px] w-[380px] text-[#FF7A45] opacity-15 rotate-45"
+        viewBox="0 0 200 400"
+        fill="none"
+        stroke="currentColor"
+      >
+        <ellipse cx="100" cy="110" rx="65" ry="85" strokeWidth="2.5" />
+        <path d="M50 110h100M60 80h80M60 140h80M100 30v160M80 40v140M120 40v140" strokeWidth="0.8" opacity="0.4" />
+        <path d="M75 190 L90 240 L90 380 L110 380 L110 240 L125 190" strokeWidth="2.5" />
+      </svg>
+
+      {/* Garis Lapangan Tenis Tengah */}
+      <svg
+        className="pointer-events-none absolute left-1/2 top-40 -translate-x-1/2 w-[800px] h-[600px] text-white/5 opacity-30"
+        viewBox="0 0 800 600"
+        fill="none"
+        stroke="currentColor"
+      >
+        <rect x="50" y="50" width="700" height="500" strokeWidth="2" />
+        <line x1="120" y1="50" x2="120" y2="550" strokeWidth="1.5" />
+        <line x1="680" y1="50" x2="680" y2="550" strokeWidth="1.5" />
+        <line x1="30" y1="300" x2="770" y2="300" strokeWidth="2" strokeDasharray="6 4" />
+        <line x1="120" y1="180" x2="680" y2="180" strokeWidth="1.5" />
+        <line x1="120" y1="420" x2="680" y2="420" strokeWidth="1.5" />
+        <line x1="400" y1="180" x2="400" y2="420" strokeWidth="1.5" />
+      </svg>
+
+      {/* Pendar Ambient Glow di Tengah Layar */}
+      <div className="pointer-events-none absolute left-1/2 top-32 -translate-x-1/2 h-80 w-80 rounded-full bg-[#FF5500]/20 blur-[130px]" />
+
       {/* SIDEBAR DESKTOP & DRAWER MOBILE */}
       <Sidebar
         username={profile.username}
@@ -540,7 +593,7 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
       />
 
       {/* AREA KONTEN UTAMA */}
-      <div className="lg:pl-60">
+      <div className="relative z-10 lg:pl-64">
         {/* MOBILE TOPBAR (☰ DAN [AD]) */}
         <header className="flex items-center justify-between px-5 pt-4 pb-1 lg:hidden">
           <button
@@ -561,33 +614,33 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
           </div>
         </header>
 
-        {/* BRANDING HEADER BESAR (EDITORIAL LUXURY STYLE) */}
-        <div className="px-4 pt-3 pb-4 text-center">
+        {/* BRANDING HEADER BESAR SESUAI MOCKUP */}
+        <div className="px-4 pt-4 pb-4 text-center">
           {/* Badge Sambutan */}
-          <div className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-[#FF7A45]/40 bg-[#FF7A45]/10 px-3 py-0.5 text-[10px] tracking-widest text-[#FF7A45] uppercase font-bold">
+          <div className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-[#FF7A45]/40 bg-[#FF7A45]/10 px-3.5 py-0.5 text-[10px] tracking-widest text-[#FF7A45] uppercase font-bold shadow-[0_0_15px_rgba(255,122,69,0.2)]">
             <span>Vamos, {displayName} ! 🎾</span>
           </div>
 
-          <h1 className="font-serif text-3xl font-black uppercase tracking-tight text-[#FDF8F5] sm:text-5xl leading-none">
-            Panic At <br className="sm:hidden" /> The Court
+          <h1 className="font-serif text-3xl font-black uppercase tracking-tight text-[#FDF8F5] sm:text-5xl lg:text-6xl leading-none drop-shadow-[0_2px_12px_rgba(0,0,0,0.5)]">
+            Panic At The Court
           </h1>
 
           <div className="mx-auto mt-2 flex max-w-xs items-center justify-center gap-3">
-            <span className="h-px flex-1 bg-gradient-to-r from-transparent to-[#FF7A45]/30" />
-            <p className="text-[9px] sm:text-[10px] font-sans tracking-[0.35em] text-[#FDF8F5]/80 uppercase whitespace-nowrap font-semibold">
+            <span className="h-px flex-1 bg-gradient-to-r from-transparent to-[#FF7A45]/40" />
+            <p className="text-[10px] sm:text-[11px] font-sans tracking-[0.35em] text-[#FDF8F5]/80 uppercase whitespace-nowrap font-semibold">
               Tennis Club Leaderboard
             </p>
-            <span className="h-px flex-1 bg-gradient-to-l from-transparent to-[#FF7A45]/30" />
+            <span className="h-px flex-1 bg-gradient-to-l from-transparent to-[#FF7A45]/40" />
           </div>
         </div>
 
         {/* MAIN BODY CONTAINER */}
-        <main className="mx-auto max-w-3xl px-4 pb-28 pt-1 sm:px-6">
+        <main className="mx-auto max-w-4xl px-4 pb-32 pt-2 sm:px-6">
           {renderContent()}
         </main>
       </div>
 
-      {/* FLOATING ACTION BUTTON (+ LOG MATCH ESTETIK) */}
+      {/* FLOATING ACTION BUTTON (+ LOG MATCH DENGAN GLOW) */}
       {loaded && !loadError && (
         <button
           type="button"
@@ -597,7 +650,7 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
             backgroundColor: 'rgba(15, 4, 2, 0.95)',
             color: '#FF7A45',
           }}
-          className="fixed bottom-6 right-5 z-40 inline-flex items-center gap-2 rounded-full border px-5 py-2.5 text-xs font-bold uppercase tracking-widest shadow-[0_0_25px_rgba(255,122,69,0.35)] backdrop-blur-md transition-all hover:bg-[#FF7A45] hover:text-[#0F0402] active:scale-95 sm:bottom-8 sm:right-8"
+          className="fixed bottom-6 right-5 z-40 inline-flex items-center gap-2 rounded-full border-2 px-6 py-3 text-xs font-bold uppercase tracking-widest shadow-[0_0_25px_rgba(255,122,69,0.45)] backdrop-blur-md transition-all hover:bg-[#FF7A45] hover:text-[#0F0402] active:scale-95 sm:bottom-8 sm:right-8"
         >
           <Plus className="h-4 w-4" />
           <span>Log Match</span>
