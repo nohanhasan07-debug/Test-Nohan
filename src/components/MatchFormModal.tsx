@@ -1,5 +1,4 @@
 import { useState, type FormEvent } from 'react';
-import { inputClass, labelClass } from '@/components/formStyles';
 import Modal from '@/components/Modal';
 import { toIsoDate } from '@/lib/date';
 import { getErrorMessage } from '@/lib/errors';
@@ -13,7 +12,6 @@ interface MatchFormModalProps {
 }
 
 const isScore = (value: string) => /^\d{1,2}$/.test(value);
-
 const padTeam = (ids: string[] = []) => [ids[0] ?? '', ids[1] ?? ''];
 
 export default function MatchFormModal({ players, initial, onSubmit, onClose }: MatchFormModalProps) {
@@ -41,7 +39,7 @@ export default function MatchFormModal({ players, initial, onSubmit, onClose }: 
   const validate = (): string | null => {
     if (!date) return 'Tanggal wajib diisi.';
     if (players.length < requiredPlayers) {
-      return `Format ini membutuhkan minimal ${requiredPlayers} pemain. Tambahkan pemain lewat Master Admin.`;
+      return `Format ini membutuhkan minimal ${requiredPlayers} pemain.`;
     }
     const picked = [...activeA, ...activeB];
     if (picked.some((id) => !id)) return 'Pilih semua pemain terlebih dahulu.';
@@ -76,145 +74,153 @@ export default function MatchFormModal({ players, initial, onSubmit, onClose }: 
 
   return (
     <Modal title={isEdit ? 'Edit Match' : 'Log Match'} onClose={onClose}>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-        <div className="grid grid-cols-2 gap-4">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        {/* Tanggal & Format */}
+        <div className="grid grid-cols-2 gap-3">
           <div>
-            <label htmlFor="match-date" className={labelClass}>Tanggal</label>
+            <label htmlFor="match-date" className="block text-[10px] font-sans uppercase tracking-wider text-[#FDF8F5]/60 mb-1">
+              Tanggal
+            </label>
             <input
               id="match-date"
               type="date"
               value={date}
-              onChange={(event) => setDate(event.target.value)}
-              className={inputClass}
+              onChange={(e) => setDate(e.target.value)}
+              className="w-full rounded-xl border border-white/20 bg-black/40 px-3 py-2 text-xs font-semibold text-[#FDF8F5] outline-none focus:border-[#FF7A45]"
             />
           </div>
           <div>
-            <span className={labelClass}>Format</span>
-            <div className="grid grid-cols-2 gap-1 rounded-xl border-2 border-white/20 bg-white/5 p-1">
-              {(['singles', 'doubles'] as const).map((option) => (
+            <span className="block text-[10px] font-sans uppercase tracking-wider text-[#FDF8F5]/60 mb-1">
+              Format
+            </span>
+            <div className="grid grid-cols-2 gap-1 rounded-xl border border-white/20 bg-black/30 p-1">
+              {(['singles', 'doubles'] as const).map((opt) => (
                 <button
-                  key={option}
+                  key={opt}
                   type="button"
-                  onClick={() => setFormat(option)}
-                  className={`rounded-lg px-2 py-2 text-sm font-semibold transition ${
-                    format === option ? 'bg-paper text-ink-950' : 'text-paper/80 hover:bg-white/10'
+                  onClick={() => setFormat(opt)}
+                  className={`rounded-lg py-1.5 text-xs font-semibold uppercase tracking-wider transition ${
+                    format === opt ? 'bg-[#FF7A45] text-[#0F0402]' : 'text-white/70 hover:text-white'
                   }`}
                 >
-                  {option === 'singles' ? 'Singles' : 'Doubles'}
+                  {opt === 'singles' ? 'Singles' : 'Doubles'}
                 </button>
               ))}
             </div>
           </div>
         </div>
 
-        <TeamFields
-          label="Tim A"
-          size={size}
-          values={activeA}
-          players={players}
-          onChange={(index, value) => updateSlot('A', index, value)}
-        />
-
-        <div className="flex items-center gap-3">
-          <span className="h-px flex-1 bg-white/15" />
-          <span className="font-display text-sm font-bold text-paper/80">VS</span>
-          <span className="h-px flex-1 bg-white/15" />
+        {/* Pemain Tim A */}
+        <div>
+          <span className="block text-[10px] font-sans uppercase tracking-wider text-[#FF7A45] mb-1">
+            Tim A
+          </span>
+          <div className="flex flex-col gap-2">
+            {Array.from({ length: size }, (_, i) => (
+              <select
+                key={i}
+                aria-label={`Tim A pemain ${i + 1}`}
+                value={activeA[i] ?? ''}
+                onChange={(e) => updateSlot('A', i, e.target.value)}
+                className="w-full rounded-xl border border-white/20 bg-black/40 px-3 py-2 text-xs text-[#FDF8F5] outline-none focus:border-[#FF7A45]"
+              >
+                <option value="" className="bg-[#1A0A06]">Pilih pemain</option>
+                {players.map((p) => (
+                  <option key={p.id} value={p.id} className="bg-[#1A0A06]">
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+            ))}
+          </div>
         </div>
 
-        <TeamFields
-          label="Tim B"
-          size={size}
-          values={activeB}
-          players={players}
-          onChange={(index, value) => updateSlot('B', index, value)}
-        />
+        {/* VS Divider */}
+        <div className="flex items-center gap-3 my-1">
+          <span className="h-px flex-1 bg-white/10" />
+          <span className="font-serif text-xs font-bold text-[#FF7A45]">VS</span>
+          <span className="h-px flex-1 bg-white/10" />
+        </div>
 
+        {/* Pemain Tim B */}
         <div>
-          <span className={labelClass}>Skor Game</span>
+          <span className="block text-[10px] font-sans uppercase tracking-wider text-[#FF7A45] mb-1">
+            Tim B
+          </span>
+          <div className="flex flex-col gap-2">
+            {Array.from({ length: size }, (_, i) => (
+              <select
+                key={i}
+                aria-label={`Tim B pemain ${i + 1}`}
+                value={activeB[i] ?? ''}
+                onChange={(e) => updateSlot('B', i, e.target.value)}
+                className="w-full rounded-xl border border-white/20 bg-black/40 px-3 py-2 text-xs text-[#FDF8F5] outline-none focus:border-[#FF7A45]"
+              >
+                <option value="" className="bg-[#1A0A06]">Pilih pemain</option>
+                {players.map((p) => (
+                  <option key={p.id} value={p.id} className="bg-[#1A0A06]">
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+            ))}
+          </div>
+        </div>
+
+        {/* Skor Game */}
+        <div>
+          <span className="block text-[10px] font-sans uppercase tracking-wider text-[#FDF8F5]/60 mb-1">
+            Skor Game
+          </span>
           <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
             <input
               aria-label="Game Tim A"
               type="number"
-              inputMode="numeric"
               min={0}
               max={99}
               placeholder="0"
               value={gamesA}
-              onChange={(event) => setGamesA(event.target.value)}
-              className={`${inputClass} text-center font-display text-xl font-bold`}
+              onChange={(e) => setGamesA(e.target.value)}
+              className="rounded-xl border border-white/20 bg-black/40 py-2 text-center font-serif text-xl font-bold text-[#FDF8F5] outline-none focus:border-[#FF7A45]"
             />
-            <span className="font-display text-xl font-bold text-paper/80">-</span>
+            <span className="font-serif text-lg text-white/40">-</span>
             <input
               aria-label="Game Tim B"
               type="number"
-              inputMode="numeric"
               min={0}
               max={99}
               placeholder="0"
               value={gamesB}
-              onChange={(event) => setGamesB(event.target.value)}
-              className={`${inputClass} text-center font-display text-xl font-bold`}
+              onChange={(e) => setGamesB(e.target.value)}
+              className="rounded-xl border border-white/20 bg-black/40 py-2 text-center font-serif text-xl font-bold text-[#FDF8F5] outline-none focus:border-[#FF7A45]"
             />
           </div>
         </div>
 
         {error && (
-          <p role="alert" className="rounded-xl border border-loss/40 bg-loss/10 px-4 py-3 text-sm font-semibold text-loss">
+          <p className="rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-400">
             {error}
           </p>
         )}
 
-        <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+        {/* Tombol Aksi */}
+        <div className="mt-2 flex items-center justify-end gap-2">
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full border-2 border-paper/30 px-5 py-2.5 font-semibold text-paper transition hover:bg-white/10"
+            className="rounded-full border border-white/20 px-4 py-2 text-xs uppercase tracking-wider text-[#FDF8F5]/80 hover:bg-white/10"
           >
             Batal
           </button>
           <button
             type="submit"
             disabled={saving}
-            className="rounded-full bg-neon px-6 py-2.5 font-semibold text-ink-950 shadow transition hover:-translate-y-0.5 hover:bg-neon-light active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-full bg-[#FF7A45] px-6 py-2 text-xs font-semibold uppercase tracking-wider text-[#0F0402] transition hover:bg-[#ff8e5e] active:scale-95 disabled:opacity-50"
           >
             {saving ? 'Menyimpan...' : isEdit ? 'Simpan Perubahan' : 'Simpan Match'}
           </button>
         </div>
       </form>
     </Modal>
-  );
-}
-
-interface TeamFieldsProps {
-  label: string;
-  size: number;
-  values: string[];
-  players: Player[];
-  onChange: (index: number, value: string) => void;
-}
-
-function TeamFields({ label, size, values, players, onChange }: TeamFieldsProps) {
-  return (
-    <div>
-      <span className={labelClass}>{label}</span>
-      <div className="flex flex-col gap-2">
-        {Array.from({ length: size }, (_, index) => (
-          <select
-            key={index}
-            aria-label={`${label} pemain ${index + 1}`}
-            value={values[index] ?? ''}
-            onChange={(event) => onChange(index, event.target.value)}
-            className={`${inputClass} appearance-none`}
-          >
-            <option value="">Pilih pemain</option>
-            {players.map((player) => (
-              <option key={player.id} value={player.id}>
-                {player.name}
-              </option>
-            ))}
-          </select>
-        ))}
-      </div>
-    </div>
   );
 }
