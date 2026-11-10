@@ -12,14 +12,12 @@ export type AuthState =
 export function useAuth() {
   const [state, setState] = useState<AuthState>({ status: 'loading' });
 
-  // Sync session dari Supabase database
   useEffect(() => {
     async function loadSession() {
       const savedProfile = localStorage.getItem(STORAGE_KEY);
       if (savedProfile) {
         try {
           const parsed = JSON.parse(savedProfile);
-          // Ambil data terbaru dari tabel profiles di Supabase
           const { data } = await supabase
             .from('profiles')
             .select('*')
@@ -31,7 +29,8 @@ export function useAuth() {
               id: data.id,
               username: data.username,
               name: data.display_name || data.name || data.username,
-              role: data.role || 'master_admin',
+              displayName: data.display_name || data.name || data.username,
+              role: data.role || 'master',
               photo_url: data.photo_url || null,
             } as any;
             localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
@@ -47,7 +46,6 @@ export function useAuth() {
     loadSession();
   }, []);
 
-  // 1. LOGIN
   const signIn = async (username: string, password: string): Promise<string | null> => {
     try {
       const trimmedUsername = username.trim();
@@ -67,7 +65,8 @@ export function useAuth() {
         id: data.id,
         username: data.username,
         name: data.display_name || data.name || data.username,
-        role: data.role || 'master_admin',
+        displayName: data.display_name || data.name || data.username,
+        role: data.role || 'master',
         photo_url: data.photo_url || null,
       } as any;
 
@@ -79,7 +78,6 @@ export function useAuth() {
     }
   };
 
-  // 2. SIGN UP
   const signUp = async (username: string, password: string): Promise<string | null> => {
     try {
       const trimmedUsername = username.trim();
@@ -94,7 +92,7 @@ export function useAuth() {
         return 'Username sudah dipakai. Coba username lain.';
       }
 
-      const isMaster = trimmedUsername.toLowerCase() === 'nohan';
+      const isMasterUser = trimmedUsername.toLowerCase() === 'nohan';
 
       const { data, error } = await supabase
         .from('profiles')
@@ -103,7 +101,7 @@ export function useAuth() {
           password: password,
           display_name: trimmedUsername,
           name: trimmedUsername,
-          role: isMaster ? 'master_admin' : 'member',
+          role: isMasterUser ? 'master' : 'member',
         })
         .select()
         .single();
@@ -116,7 +114,8 @@ export function useAuth() {
         id: data.id,
         username: data.username,
         name: data.display_name || data.name || data.username,
-        role: data.role || 'member',
+        displayName: data.display_name || data.name || data.username,
+        role: data.role || 'master',
         photo_url: data.photo_url || null,
       } as any;
 
@@ -128,7 +127,6 @@ export function useAuth() {
     }
   };
 
-  // 3. LOG OUT
   const signOut = async () => {
     localStorage.removeItem(STORAGE_KEY);
     setState({ status: 'signed-out' });
