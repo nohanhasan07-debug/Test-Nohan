@@ -1,9 +1,7 @@
 import { useState } from 'react';
 import ClubLogo from '@/components/ClubLogo';
-import CourtLines from '@/components/CourtLines';
 import LoginForm from '@/components/LoginForm';
 import SignUpForm from '@/components/SignUpForm';
-import TennisBall from '@/components/TennisBall';
 
 type AuthMode = 'login' | 'signup';
 
@@ -12,65 +10,68 @@ interface AuthPageProps {
   onSignUp: (username: string, password: string) => Promise<string | null>;
 }
 
-const TABS: { mode: AuthMode; label: string }[] = [
-  { mode: 'login', label: 'Masuk' },
-  { mode: 'signup', label: 'Daftar Akun Baru' },
-];
-
 export default function AuthPage({ onSignIn, onSignUp }: AuthPageProps) {
   const [mode, setMode] = useState<AuthMode>('login');
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4 py-10">
-      <div className="animate-fade-up w-full max-w-md">
+    <div className="relative flex min-h-screen items-center justify-center px-4 py-12">
+      {/* Lingkaran ornamen geometris latar belakang */}
+      <div className="pointer-events-none absolute h-[500px] w-[500px] rounded-full border border-white/5 opacity-40" />
+      <div className="pointer-events-none absolute h-[700px] w-[700px] rounded-full border border-white/5 opacity-20" />
+
+      <div className="relative w-full max-w-sm">
+        {/* Branding Atas */}
         <div className="flex flex-col items-center text-center">
-          <ClubLogo className="w-44 shadow-2xl ring-4 ring-neon md:w-52" />
-          <p className="mt-6 font-display text-2xl font-bold tracking-wide text-paper md:text-3xl">
-            PANIC AT THE COURT
+          <div className="relative mb-3">
+            <ClubLogo className="w-20 rounded-full border border-[#FF7A45]/30 p-2 shadow-2xl backdrop-blur-md" />
+          </div>
+          <h1 className="font-serif text-2xl font-black uppercase tracking-tight text-[#FDF8F5] leading-tight">
+            Panic At <br /> The Court
+          </h1>
+          <p className="mt-1 text-[9px] font-sans uppercase tracking-[0.3em] text-[#FDF8F5]/60">
+            Tennis Club Leaderboard
           </p>
-          <p className="mt-1 text-xs uppercase tracking-[0.25em] text-paper/70">Tennis Club Leaderboard</p>
         </div>
 
-        <div className="relative mt-8 overflow-hidden rounded-3xl border-2 border-paper/30 bg-ink-900 p-6 shadow-xl md:p-8">
-          <div className="pointer-events-none absolute inset-0 overflow-hidden">
-            <CourtLines className="text-paper/10" />
+        {/* Card Formulir Masuk / Daftar */}
+        <div className="relative mt-7 overflow-hidden rounded-3xl border border-white/15 bg-[#150604]/80 p-6 shadow-2xl backdrop-blur-xl sm:p-8">
+          <span className="absolute top-2 left-3 font-mono text-[10px] text-white/30">+</span>
+          <span className="absolute top-2 right-3 font-mono text-[10px] text-white/30">+</span>
+          <span className="absolute bottom-2 left-3 font-mono text-[10px] text-white/30">+</span>
+          <span className="absolute bottom-2 right-3 font-mono text-[10px] text-white/30">+</span>
+
+          {/* Toggle Tab Masuk vs Daftar */}
+          <div className="mb-6 grid grid-cols-2 gap-1 rounded-full border border-white/15 bg-white/5 p-1">
+            <button
+              type="button"
+              onClick={() => setMode('login')}
+              className={`rounded-full py-1.5 text-xs font-semibold uppercase tracking-wider transition ${
+                mode === 'login'
+                  ? 'bg-[#FF7A45] text-[#0F0402]'
+                  : 'text-[#FDF8F5]/70 hover:text-[#FDF8F5]'
+              }`}
+            >
+              Masuk
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode('signup')}
+              className={`rounded-full py-1.5 text-xs font-semibold uppercase tracking-wider transition ${
+                mode === 'signup'
+                  ? 'bg-[#FF7A45] text-[#0F0402]'
+                  : 'text-[#FDF8F5]/70 hover:text-[#FDF8F5]'
+              }`}
+            >
+              Daftar Baru
+            </button>
           </div>
 
-          <div className="relative flex flex-col gap-6">
-            <div className="text-center">
-              <TennisBall className="mx-auto mb-2 h-10 w-10 text-neon-dark" />
-              <h1 className="font-display text-xl font-bold">
-                {mode === 'login' ? 'Masuk ke Klub' : 'Buat Akun Member'}
-              </h1>
-              <p className="mt-1 text-sm text-paper/70">
-                {mode === 'login'
-                  ? 'Masuk dengan username dan password Anda.'
-                  : 'Cukup isi username dan password untuk mulai.'}
-              </p>
-            </div>
-
-            <div role="tablist" className="grid grid-cols-2 gap-1 rounded-full border-2 border-white/20 bg-white/5 p-1">
-              {TABS.map((tab) => {
-                const selected = mode === tab.mode;
-                return (
-                  <button
-                    key={tab.mode}
-                    type="button"
-                    role="tab"
-                    aria-selected={selected}
-                    onClick={() => setMode(tab.mode)}
-                    className={`rounded-full px-3 py-2 text-sm font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-neon ${
-                      selected ? 'bg-paper text-ink-950' : 'text-paper/80 hover:bg-white/10'
-                    }`}
-                  >
-                    {tab.label}
-                  </button>
-                );
-              })}
-            </div>
-
-            {mode === 'login' ? <LoginForm onSignIn={onSignIn} /> : <SignUpForm onSignUp={onSignUp} />}
-          </div>
+          {/* Formulir Sesuai Mode */}
+          {mode === 'login' ? (
+            <LoginForm onSignIn={onSignIn} />
+          ) : (
+            <SignUpForm onSignUp={onSignUp} />
+          )}
         </div>
       </div>
     </div>
