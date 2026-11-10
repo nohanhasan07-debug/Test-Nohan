@@ -1,21 +1,43 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import ClubLogo from '@/components/ClubLogo';
 import AuthPage from '@/components/AuthPage';
 import LeaderboardPage from '@/components/LeaderboardPage';
 import { PlayerCardsView } from '@/components/PlayerCardsView';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/lib/supabase'; // Pastikan path supabase client sesuai projectmu
+import { Player, Match } from '@/types/playerCard';
 
 function App() {
   const { state, signIn, signUp, signOut } = useAuth();
   
-  // State untuk mengontrol menu/halaman yang sedang aktif ('leaderboard' atau 'cards')
   const [currentView, setCurrentView] = useState<'leaderboard' | 'cards'>('leaderboard');
+  const [players, setPlayers] = useState<Player[]>([]);
+  const [matches, setMatches] = useState<Match[]>([]);
+
+  // Fetch data players & matches dari Supabase saat user sudah login
+  useEffect(() => {
+    if (state.status === 'signed-in' && state.profile) {
+      async function fetchData() {
+        try {
+          // Ambil data profiles/players
+          const { data: playersData } = await supabase.from('profiles').select('*');
+          if (playersData) setPlayers(playersData);
+
+          // Ambil data matches
+          const { data: matchesData } = await supabase.from('matches').select('*');
+          if (matchesData) setMatches(matchesData);
+        } catch (err) {
+          console.error('Gagal mengambil data player cards:', err);
+        }
+      }
+      fetchData();
+    }
+  }, [state.status, state.profile]);
 
   // 1. TAMPILAN LOADING (EDITORIAL AMBIENT GLOW)
   if (state.status === 'loading') {
     return (
       <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-[#0F0402] px-4">
-        {/* Glow ambient terakota */}
         <div className="absolute h-96 w-96 rounded-full bg-[#B84013]/20 blur-[120px] pointer-events-none" />
         <div className="relative flex flex-col items-center">
           <div className="relative mb-6">
@@ -71,7 +93,7 @@ function App() {
   // 4. TAMPILAN UTAMA (DENGAN DUKUNGAN NAVIGASI VIEWS)
   return (
     <div className="min-h-screen bg-transparent text-[#FDF8F5]">
-      {/* Tombol Sementara Pengalih Menu (Bisa ditaruh di sidebar komponen Leaderboard nanti) */}
+      {/* Tombol Pengalih Menu Sementara */}
       <div className="fixed top-4 right-6 z-50 flex items-center gap-2 bg-black/60 backdrop-blur-md border border-white/15 px-3 py-1.5 rounded-full shadow-lg">
         <button
           onClick={() => setCurrentView('leaderboard')}
@@ -96,10 +118,10 @@ function App() {
         <LeaderboardPage profile={state.profile} onSignOut={signOut} />
       ) : (
         <PlayerCardsView
-          players={[]} // Sambungkan dengan state data players dari hook atau database jika ada
-          matches={[]} // Sambungkan dengan state data matches dari hook atau database jika ada
-          currentUserEmail={state.profile.email}
-          currentUserRole={state.profile.role}
+          players={players}
+          matches={matches}
+          currentUserEmail={state.profile.email || ''}
+          currentUserRole={state.profile.role || 'member'}
         />
       )}
     </div>
