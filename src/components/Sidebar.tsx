@@ -76,7 +76,7 @@ export default function Sidebar({
 
   return (
     <>
-      {/* 1. BACKDROP OVERLAY */}
+      {/* 1. BACKDROP OVERLAY DI MOBILE */}
       {mobileOpen && (
         <div
           className="fixed inset-0 z-40 bg-black/75 backdrop-blur-sm lg:hidden transition-opacity"
@@ -85,31 +85,26 @@ export default function Sidebar({
         />
       )}
 
-      {/* 2. FLOATING DRAWER CONTAINER */}
+      {/* 2. SIDEBAR CONTAINER: DESKTOP DOCKED (lg:w-64) & MOBILE FLOATING */}
       <aside
-        className={`fixed inset-y-3 left-3 z-50 flex w-[85%] max-w-[320px] flex-col rounded-3xl border border-white/20 bg-gradient-to-b from-[#1E0904] via-[#2D0D06] to-[#0F0402] p-5 shadow-2xl shadow-black/90 backdrop-blur-xl transition-transform duration-300 ease-out lg:inset-y-0 lg:left-0 lg:z-30 lg:w-60 lg:rounded-none lg:border-r lg:border-y-0 lg:border-l-0 lg:border-white/10 lg:bg-[#120402]/95 lg:p-4 lg:shadow-none ${
+        className={`fixed inset-y-3 left-3 z-50 flex w-[85%] max-w-[320px] flex-col rounded-3xl border border-white/20 bg-gradient-to-b from-[#1E0904] via-[#2D0D06] to-[#0F0402] p-5 shadow-2xl shadow-black/90 backdrop-blur-xl transition-transform duration-300 ease-out lg:inset-y-0 lg:left-0 lg:z-30 lg:w-64 lg:rounded-none lg:border-r lg:border-y-0 lg:border-l-0 lg:border-white/10 lg:bg-[#120402]/95 lg:p-5 lg:shadow-none ${
           mobileOpen ? 'translate-x-0' : '-translate-x-[125%] lg:translate-x-0'
         }`}
       >
-        {/* ======================================================== */}
-        {/* HEADER DRAWER: LOGO & BRANDING "PATC - TENNIS CLUB" */}
-        {/* ======================================================== */}
-        <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-4">
+        {/* HEADER BRANDING: LOGO PATC */}
+        <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-5">
           <div className="flex items-center gap-3">
             <ClubLogo className="h-11 w-11 shrink-0 rounded-full border border-[#FF7A45]/40 p-0.5 shadow-md" />
             <div className="flex flex-col">
-              {/* Judul Singkat PATC Tanpa Truncate */}
               <span className="font-serif text-2xl font-bold uppercase leading-none tracking-widest text-[#FDF8F5]">
                 PATC
               </span>
-              {/* Sub-judul Tennis Club */}
               <span className="mt-1 font-sans text-[10px] font-semibold uppercase tracking-[0.25em] text-[#FF7A45]">
                 Tennis Club
               </span>
             </div>
           </div>
 
-          {/* Tombol Close (X) */}
           <button
             type="button"
             onClick={onCloseMobile}
@@ -121,8 +116,7 @@ export default function Sidebar({
         </div>
 
         {/* LIST NAVIGASI */}
-        <nav className="flex-1 overflow-y-auto py-4">
-          {/* JUDUL KATEGORI: NAVIGASI */}
+        <nav className="flex-1 overflow-y-auto py-5">
           <p className="px-3 pb-2.5 text-[11px] font-bold uppercase tracking-widest text-[#FF7A45]">
             Navigasi
           </p>
@@ -141,9 +135,9 @@ export default function Sidebar({
                         if (item.tab) onChangeTab(item.tab);
                       })
                     }
-                    className={`flex w-full items-center gap-3 px-3 py-2.5 text-left text-xs transition-all ${
+                    className={`flex w-full items-center gap-3 px-3.5 py-2.5 text-left text-xs transition-all ${
                       active
-                        ? 'rounded-2xl border border-white/25 bg-gradient-to-r from-[#B84013] to-[#FF7A45] text-white font-semibold drop-shadow shadow-lg shadow-[#B84013]/40'
+                        ? 'rounded-2xl border border-white/25 bg-gradient-to-r from-[#B84013] to-[#FF7A45] text-white font-semibold shadow-lg shadow-[#B84013]/40 drop-shadow'
                         : 'rounded-2xl text-[#FDF8F5] font-medium hover:bg-white/10 hover:text-white'
                     }`}
                   >
@@ -169,9 +163,9 @@ export default function Sidebar({
                   <button
                     type="button"
                     onClick={() => choose(() => onChangeView('approvals'))}
-                    className={`flex w-full items-center gap-3 px-3 py-2.5 text-left text-xs transition-all ${
+                    className={`flex w-full items-center gap-3 px-3.5 py-2.5 text-left text-xs transition-all ${
                       view === 'approvals'
-                        ? 'rounded-2xl border border-white/25 bg-gradient-to-r from-[#B84013] to-[#FF7A45] text-white font-semibold drop-shadow shadow-lg shadow-[#B84013]/40'
+                        ? 'rounded-2xl border border-white/25 bg-gradient-to-r from-[#B84013] to-[#FF7A45] text-white font-semibold shadow-lg shadow-[#B84013]/40 drop-shadow'
                         : 'rounded-2xl text-[#FDF8F5] font-medium hover:bg-white/10 hover:text-white'
                     }`}
                   >
@@ -191,7 +185,7 @@ export default function Sidebar({
                   <button
                     type="button"
                     onClick={() => choose(onOpenSettings)}
-                    className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left text-xs text-[#FDF8F5] font-medium transition-all hover:bg-white/10 hover:text-white"
+                    className="flex w-full items-center gap-3 rounded-2xl px-3.5 py-2.5 text-left text-xs text-[#FDF8F5] font-medium transition-all hover:bg-white/10 hover:text-white"
                   >
                     <Settings className="h-4 w-4 shrink-0 text-[#FF7A45]" aria-hidden="true" />
                     <span className="truncate">Pengaturan Master</span>
@@ -212,7 +206,7 @@ export default function Sidebar({
               <p className="truncate font-sans text-xs text-white font-medium">
                 @{username}
               </p>
-              <p className="text-[11px] uppercase tracking-wider text-white/60 font-sans">
+              <p className="text-[10px] uppercase tracking-wider text-white/60 font-sans">
                 {isMaster ? 'Master Admin' : 'Member'}
               </p>
             </div>
