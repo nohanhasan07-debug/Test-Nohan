@@ -7,36 +7,142 @@ import { useAuth } from '@/hooks/useAuth';
 function App() {
   const { state, signIn, signUp, signOut } = useAuth();
 
+  // 1. TAMPILAN LOADING (SPORTY LUXURY AMBIENT)
   if (state.status === 'loading') {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-4">
-        <ClubLogo className="w-28 animate-pulse ring-4 ring-neon" />
-        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-paper/70">Memuat...</p>
+      <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-ink-950 px-4">
+        {/* Ambient Halo Glow */}
+        <div className="absolute h-72 w-72 rounded-full bg-neon/10 blur-[100px] pointer-events-none" />
+
+        <div className="relative flex flex-col items-center">
+          <div className="relative mb-6">
+            <div className="absolute -inset-1.5 rounded-2xl bg-gradient-to-b from-neon/40 to-transparent opacity-60 blur-sm" />
+            <div className="relative rounded-2xl border border-paper/10 bg-ink-900/80 p-3 shadow-2xl backdrop-blur-xl">
+              <ClubLogo className="w-20 sm:w-24 transition-transform duration-700 hover:scale-105" />
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="h-1.5 w-1.5 animate-ping rounded-full bg-neon" />
+            <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-paper/60">
+              Entering The Court
+            </p>
+          </div>
+        </div>
       </div>
     );
   }
 
+  // 2. TAMPILAN AUTH (SIGN IN / SIGN UP)
   if (state.status === 'signed-out') {
     return <AuthPage onSignIn={signIn} onSignUp={signUp} />;
   }
 
+  // 3. TAMPILAN ERROR / PROFIL TIDAK DITEMUKAN
   if (!state.profile) {
     return (
-      <div className="flex min-h-screen items-center justify-center px-4">
-        <div className="max-w-md rounded-2xl border-2 border-loss/40 bg-ink-900 p-6 text-center shadow-lg">
-          <p className="font-display text-xl font-bold">Akun belum terdaftar</p>
-          <p className="mt-2 text-sm text-paper/70">
-            Akun Anda belum lengkap atau tidak bisa dimuat. Hubungi master admin klub.
+      <div className="flex min-h-screen items-center justify-center bg-ink-950 px-4">
+        <div className="relative w-full max-w-md overflow-hidden rounded-3xl border border-loss/30 bg-ink-900/80 p-8 text-center shadow-2xl backdrop-blur-2xl">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-loss/20 bg-loss/10 text-loss">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-7 w-7"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"
+              />
+            </svg>
+          </div>
+
+          <h2 className="font-display text-2xl font-bold tracking-tight text-paper">
+            Akun Belum Terdaftar
+          </h2>
+          <p className="mt-2 text-sm leading-relaxed text-paper/60">
+            Akun Anda belum tersinkronisasi dengan master data. Silakan hubungi pengurus atau Master Admin klub.
           </p>
-          <button type="button" onClick={signOut} className={`${secondaryButtonClass} mt-5`}>
-            Keluar
+
+          <button
+            type="button"
+            onClick={signOut}
+            className={`${secondaryButtonClass} mt-6 w-full py-3 text-xs tracking-widest uppercase transition-all duration-300 hover:border-paper/40`}
+          >
+            Keluar Aplikasi
           </button>
         </div>
       </div>
     );
   }
 
-  return <LeaderboardPage profile={state.profile} onSignOut={signOut} />;
+  // Ekstrak nama user (username / nama display)
+  const userName =
+    state.profile.name ||
+    state.profile.username ||
+    state.profile.full_name ||
+    'Player';
+
+  // 4. TAMPILAN UTAMA (LEADERBOARD DENGAN LUXURY WELCOME BAR)
+  return (
+    <div className="min-h-screen bg-ink-950 text-paper">
+      {/* Luxury Welcome Banner Header */}
+      <section className="relative border-b border-paper/10 bg-gradient-to-b from-ink-900/70 via-ink-900/40 to-transparent backdrop-blur-md">
+        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-6 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
+          <div>
+            {/* Tagline Kecil / Badge */}
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-neon/30 bg-neon/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-neon">
+                <span className="h-1.5 w-1.5 rounded-full bg-neon animate-pulse" />
+                Active Matchday
+              </span>
+              <span className="text-[11px] font-medium tracking-widest uppercase text-paper/40">
+                PATC Club Circuit
+              </span>
+            </div>
+
+            {/* Welcome Word Permintaan Anda */}
+            <h1 className="mt-2 font-display text-3xl font-bold tracking-tight sm:text-4xl">
+              Vamos, <span className="italic font-normal text-neon underline decoration-neon/30 decoration-2 underline-offset-8">{userName}</span> ! 🎾
+            </h1>
+          </div>
+
+          {/* Quick Sign Out Pill Minimalis */}
+          <div className="flex items-center">
+            <button
+              type="button"
+              onClick={signOut}
+              className="inline-flex items-center gap-2 rounded-xl border border-paper/10 bg-ink-900/60 px-4 py-2 text-xs font-semibold tracking-wider uppercase text-paper/70 transition-all duration-200 hover:border-paper/30 hover:bg-ink-900 hover:text-paper"
+            >
+              <span>Logout</span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-3.5 w-3.5 opacity-60"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Konten Leaderboard */}
+      <main className="relative">
+        <LeaderboardPage profile={state.profile} onSignOut={signOut} />
+      </main>
+    </div>
+  );
 }
 
 export default App;
