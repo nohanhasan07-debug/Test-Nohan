@@ -1,76 +1,118 @@
 import { useEffect, useState } from 'react';
-import type { Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
-import { toProfile, type ProfileRow } from '@/lib/profiles';
 import type { Profile } from '@/types';
 
-const AUTH_EMAIL_DOMAIN = 'patc-club.com';
+const STORAGE_KEY = 'patc_user_session';
 
 export type AuthState =
   | { status: 'loading' }
   | { status: 'signed-out' }
-  | { status: 'signed-in'; profile: Profile | null };
-
-// Supabase requires an email, so usernames map to an internal address that members never see.
-const toAuthEmail = (username: string) => `${username.trim().toLowerCase()}@${AUTH_EMAIL_DOMAIN}`;
+  | { status: 'signed-in'; profile: Profile };
 
 export function useAuth() {
   const [state, setState] = useState<AuthState>({ status: 'loading' });
 
+  // Load session dari LocalStorage saat web dibuka
   useEffect(() => {
-    let active = true;
-
-    const applySession = (session: Session | null) => {
-      (async () => {
-        if (!session) {
-          if (active) setState({ status: 'signed-out' });
-          return;
-        }
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('id, username, display_name, role')
-          .eq('id', session.user.id)
-          .maybeSingle();
-        if (!active) return;
-        const profile = !error && data ? toProfile(data as ProfileRow) : null;
+    const savedProfile = localStorage.getItem(STORAGE_KEY);
+    if (savedProfile) {
+      try {
+        const profile = JSON.parse(savedProfile);
         setState({ status: 'signed-in', profile });
-      })();
-    };
-
-    const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => {
-      applySession(session);
-    });
-
-    return () => {
-      active = false;
-      subscription.subscription.unsubscribe();
-    };
+      } catch {
+        localStorage.removeItem(STORAGE_KEY);
+        setState({ status: 'signed-out' });
+      }
+    } else {
+      setState({ status: 'signed-out' });
+    }
   }, []);
 
+  // 1. LOGIN (Cek Username & Password murni dari tabel profiles)
   const signIn = async (username: string, password: string): Promise<string | null> => {
-    const { error } = await supabase.auth.signInWithPassword({ email: toAuthEmail(username), password });
-    if (error) return 'Username atau password salah.';
-    return null;
-  };
+    try {
+      const trimmedUsername = username.trim();
 
-  const signUp = async (username: string, password: string): Promise<string | null> => {
-    const normalized = username.trim().toLowerCase();
-    const { data, error } = await supabase.auth.signUp({
-      email: toAuthEmail(normalized),
-      password,
-      options: { data: { username: normalized } },
-    });
-    if (error) {
-      if (/already registered/i.test(error.message)) return 'Username sudah dipakai. Coba username lain.';
-      return 'Akun tidak bisa dibuat. Coba lagi.';
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .ilike('username', trimmedUsername)
+        .eq('password', password)
+        .maybeSingle();
+
+      if (error || !data) {
+        return 'Username atau password salah.';
+      }
+
+      const profile: Profile = {
+        id: data.id,
+        username: data.username,
+        name: data.display_name || data.name || data.username,
+        role: data.role || 'member',
+        photo_url: data.photo_url || null,
+      } as any;
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
+      setState({ status: 'signed-in', profile });
+      return null;
+    } catch {
+      return 'Terjadi kesalahan sistem saat login.';
     }
-    // No session means email confirmation is still enabled, so the account cannot sign in yet.
-    if (!data.session) return 'Akun sudah dibuat, tetapi belum bisa langsung masuk. Hubungi master admin.';
-    return null;
   };
 
+  // 2. SIGN UP (Simpan Username & Password murni ke tabel profiles)
+  const signUp = async (username: string, password: string): Promise<string | null> => {
+    try {
+      const trimmedUsername = username.trim();
+
+      // Cek ketersediaan username
+      const { data: existing } = await supabase
+        .from('profiles')
+        .select('id')
+        .ilike('username', trimmedUsername)
+        .maybeSingle();
+
+      if (existing) {
+        return 'Username sudah dipakai. Coba username lain.';
+      }
+
+      // Buat akun baru langsung ke tabel profiles
+      const { data, error } = await supabase
+        .from('profiles')
+        .insert({
+          username: trimmedUsername,
+          password: password,
+          display_name: trimmedUsername,
+          name: trimmedUsername,
+          role: 'member',
+        })
+        .select()
+        .single();
+
+      if (error || !data) {
+        return 'Akun tidak bisa dibuat. Coba lagi.';
+      }
+
+      const profile: Profile = {
+        id: data.id,
+        username: data.username,
+        name: data.display_name || data.name || data.username,
+        role: data.role || 'member',
+        photo_url: data.photo_url || null,
+      } as any;
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
+      setState({ status: 'signed-in', profile });
+      return null;
+    } catch {
+      return 'Terjadi kesalahan sistem saat mendaftar.';
+    }
+  };
+
+  // 3. LOG OUT
   const signOut = async () => {
-    await supabase.auth.signOut();
+    localStorage.removeItem(STORAGE_KEY);
+    setState({ status: 'signed-out' });
   };
 
   return { state, signIn, signUp, signOut };
