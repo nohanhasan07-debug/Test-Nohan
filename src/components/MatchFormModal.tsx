@@ -30,7 +30,7 @@ export default function MatchFormModal({ players, initial, onSubmit, onClose }: 
   const requiredPlayers = size * 2;
   const isEdit = Boolean(initial);
 
-  // Tutup otomatis jika tombol Escape ditekan
+  // Tutup dengan Escape
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -83,28 +83,30 @@ export default function MatchFormModal({ players, initial, onSubmit, onClose }: 
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md transition-all"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="relative w-full max-w-lg overflow-hidden rounded-3xl border border-white/25 bg-gradient-to-b from-[#2D0D06] via-[#1E0904] to-[#0F0402] p-6 text-white shadow-2xl shadow-black max-h-[92vh] overflow-y-auto">
+      <div className="relative w-full max-w-lg overflow-hidden rounded-3xl border border-[#FF7A45]/30 bg-gradient-to-b from-[#2D0D06] via-[#1E0904] to-[#0F0402] p-6 shadow-2xl shadow-black max-h-[92vh] overflow-y-auto">
         {/* Ornamen sudut crosshair '+' */}
-        <span className="absolute top-2 left-3 font-mono text-[10px] text-white/40">+</span>
-        <span className="absolute top-2 right-3 font-mono text-[10px] text-white/40">+</span>
+        <span className="absolute top-2 left-3 font-mono text-[10px] text-[#FF7A45]/50">+</span>
+        <span className="absolute top-2 right-3 font-mono text-[10px] text-[#FF7A45]/50">+</span>
 
         {/* HEADER MODAL */}
-        <div className="flex items-center justify-between border-b border-white/15 pb-4 mb-5">
+        <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-5">
           <h2 className="font-serif text-2xl font-bold tracking-wide text-[#FDF8F5]">
             {isEdit ? 'Edit Match' : 'Log Match'}
           </h2>
+          {/* Tombol Close (X) dengan kontras tinggi */}
           <button
             type="button"
             onClick={onClose}
             aria-label="Tutup modal"
-            className="flex h-8 w-8 items-center justify-center rounded-full border border-white/30 bg-white/10 text-white transition-all hover:bg-white/20 active:scale-95"
+            style={{ color: '#FDF8F5', backgroundColor: 'rgba(255, 122, 69, 0.15)', borderColor: 'rgba(255, 122, 69, 0.4)' }}
+            className="flex h-8 w-8 items-center justify-center rounded-full border transition-all hover:bg-[#FF7A45]/30 active:scale-95"
           >
-            <X className="h-4 w-4" />
+            <X className="h-4 w-4" style={{ stroke: '#FDF8F5' }} />
           </button>
         </div>
 
@@ -121,8 +123,13 @@ export default function MatchFormModal({ players, initial, onSubmit, onClose }: 
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                style={{ colorScheme: 'dark' }}
-                className="w-full rounded-xl border border-white/25 bg-[#120402] px-3 py-2.5 text-xs font-semibold text-white shadow-inner focus:outline-none focus:border-[#FF7A45] focus:ring-1 focus:ring-[#FF7A45]"
+                style={{
+                  colorScheme: 'dark',
+                  color: '#FDF8F5',
+                  backgroundColor: '#120402',
+                  borderColor: 'rgba(255, 122, 69, 0.4)',
+                }}
+                className="w-full rounded-xl border px-3 py-2.5 text-xs font-semibold outline-none focus:border-[#FF7A45] focus:ring-1 focus:ring-[#FF7A45]"
               />
             </div>
 
@@ -130,21 +137,27 @@ export default function MatchFormModal({ players, initial, onSubmit, onClose }: 
               <span className="block text-[#FF7A45] font-bold text-[11px] tracking-widest uppercase mb-1.5">
                 Format
               </span>
-              <div className="grid grid-cols-2 gap-1 rounded-xl border border-white/20 bg-black/50 p-1">
-                {(['singles', 'doubles'] as const).map((opt) => (
-                  <button
-                    key={opt}
-                    type="button"
-                    onClick={() => setFormat(opt)}
-                    className={`rounded-lg py-2 text-xs uppercase tracking-wider font-semibold transition-all ${
-                      format === opt
-                        ? 'bg-gradient-to-r from-[#B84013] to-[#FF7A45] text-white shadow'
-                        : 'text-white/80 hover:text-white hover:bg-white/10'
-                    }`}
-                  >
-                    {opt === 'singles' ? 'Singles' : 'Doubles'}
-                  </button>
-                ))}
+              <div
+                style={{ backgroundColor: '#120402', borderColor: 'rgba(255, 122, 69, 0.3)' }}
+                className="grid grid-cols-2 gap-1 rounded-xl border p-1"
+              >
+                {(['singles', 'doubles'] as const).map((opt) => {
+                  const isSelected = format === opt;
+                  return (
+                    <button
+                      key={opt}
+                      type="button"
+                      onClick={() => setFormat(opt)}
+                      style={{
+                        background: isSelected ? 'linear-gradient(to right, #B84013, #FF7A45)' : 'transparent',
+                        color: isSelected ? '#FFFFFF' : '#FDF8F5',
+                      }}
+                      className="rounded-lg py-2 text-xs uppercase tracking-wider font-bold transition-all hover:bg-white/5"
+                    >
+                      {opt === 'singles' ? 'Singles' : 'Doubles'}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -161,21 +174,24 @@ export default function MatchFormModal({ players, initial, onSubmit, onClose }: 
                   aria-label={`Tim A pemain ${i + 1}`}
                   value={activeA[i] ?? ''}
                   onChange={(e) => updateSlot('A', i, e.target.value)}
-                  style={{ colorScheme: 'dark' }}
-                  className="w-full rounded-xl border border-white/25 bg-[#120402] px-3 py-2.5 text-xs font-medium text-white shadow-inner focus:outline-none focus:border-[#FF7A45] focus:ring-1 focus:ring-[#FF7A45]"
+                  style={{
+                    colorScheme: 'dark',
+                    color: '#FDF8F5',
+                    backgroundColor: '#120402',
+                    borderColor: 'rgba(255, 122, 69, 0.4)',
+                  }}
+                  className="w-full rounded-xl border px-3 py-2.5 text-xs font-medium outline-none focus:border-[#FF7A45] focus:ring-1 focus:ring-[#FF7A45]"
                 >
                   <option
                     value=""
-                    className="bg-[#1F0703] text-white/70 py-1"
-                    style={{ backgroundColor: '#1F0703', color: '#D1D5DB' }}
+                    style={{ backgroundColor: '#1F0703', color: '#FF7A45' }}
                   >
-                    Pilih pemain...
+                    -- Pilih pemain Tim A --
                   </option>
                   {players.map((p) => (
                     <option
                       key={p.id}
                       value={p.id}
-                      className="bg-[#1F0703] text-white font-medium py-1"
                       style={{ backgroundColor: '#1F0703', color: '#FFFFFF' }}
                     >
                       {p.name}
@@ -188,9 +204,9 @@ export default function MatchFormModal({ players, initial, onSubmit, onClose }: 
 
           {/* VS DIVIDER */}
           <div className="flex items-center gap-3 my-0.5">
-            <span className="h-px flex-1 bg-white/20" />
+            <span className="h-px flex-1 bg-[#FF7A45]/20" />
             <span className="font-serif text-xs font-bold text-[#FF7A45] px-1 tracking-wider">VS</span>
-            <span className="h-px flex-1 bg-white/20" />
+            <span className="h-px flex-1 bg-[#FF7A45]/20" />
           </div>
 
           {/* PEMAIN TIM B */}
@@ -205,21 +221,24 @@ export default function MatchFormModal({ players, initial, onSubmit, onClose }: 
                   aria-label={`Tim B pemain ${i + 1}`}
                   value={activeB[i] ?? ''}
                   onChange={(e) => updateSlot('B', i, e.target.value)}
-                  style={{ colorScheme: 'dark' }}
-                  className="w-full rounded-xl border border-white/25 bg-[#120402] px-3 py-2.5 text-xs font-medium text-white shadow-inner focus:outline-none focus:border-[#FF7A45] focus:ring-1 focus:ring-[#FF7A45]"
+                  style={{
+                    colorScheme: 'dark',
+                    color: '#FDF8F5',
+                    backgroundColor: '#120402',
+                    borderColor: 'rgba(255, 122, 69, 0.4)',
+                  }}
+                  className="w-full rounded-xl border px-3 py-2.5 text-xs font-medium outline-none focus:border-[#FF7A45] focus:ring-1 focus:ring-[#FF7A45]"
                 >
                   <option
                     value=""
-                    className="bg-[#1F0703] text-white/70 py-1"
-                    style={{ backgroundColor: '#1F0703', color: '#D1D5DB' }}
+                    style={{ backgroundColor: '#1F0703', color: '#FF7A45' }}
                   >
-                    Pilih pemain...
+                    -- Pilih pemain Tim B --
                   </option>
                   {players.map((p) => (
                     <option
                       key={p.id}
                       value={p.id}
-                      className="bg-[#1F0703] text-white font-medium py-1"
                       style={{ backgroundColor: '#1F0703', color: '#FFFFFF' }}
                     >
                       {p.name}
@@ -230,7 +249,7 @@ export default function MatchFormModal({ players, initial, onSubmit, onClose }: 
             </div>
           </div>
 
-          {/* SKOR GAME (DIGITAL TENNIS SCOREBOARD LOOK) */}
+          {/* SKOR GAME (SCOREBOARD DIGITAL TENNIS) */}
           <div className="mt-1">
             <span className="block text-[#FF7A45] font-bold text-[11px] tracking-widest uppercase mb-2">
               Skor Game (Games Won)
@@ -238,7 +257,7 @@ export default function MatchFormModal({ players, initial, onSubmit, onClose }: 
             <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
               {/* Box Skor Tim A */}
               <div className="relative">
-                <span className="absolute -top-2 left-3 bg-[#2D0D06] px-1.5 text-[9px] font-bold uppercase tracking-wider text-[#FF7A45]">
+                <span className="absolute -top-2 left-3 bg-[#2D0D06] px-1.5 text-[9px] font-bold uppercase tracking-wider text-[#FF7A45] rounded">
                   Tim A
                 </span>
                 <input
@@ -250,16 +269,21 @@ export default function MatchFormModal({ players, initial, onSubmit, onClose }: 
                   placeholder="0"
                   value={gamesA}
                   onChange={(e) => setGamesA(e.target.value)}
-                  style={{ colorScheme: 'dark' }}
-                  className="w-full rounded-2xl border-2 border-[#FF7A45]/50 bg-[#120402] py-3 text-center font-serif text-3xl font-black text-[#FF7A45] placeholder:text-[#FF7A45]/30 focus:border-[#FF7A45] focus:outline-none focus:ring-2 focus:ring-[#FF7A45]/40 shadow-inner"
+                  style={{
+                    colorScheme: 'dark',
+                    color: '#FF7A45',
+                    backgroundColor: '#120402',
+                    borderColor: 'rgba(255, 122, 69, 0.5)',
+                  }}
+                  className="w-full rounded-2xl border-2 py-3 text-center font-serif text-3xl font-black outline-none focus:border-[#FF7A45] focus:ring-2 focus:ring-[#FF7A45]/40 shadow-inner"
                 />
               </div>
 
-              <span className="font-serif text-2xl font-black text-white/50">-</span>
+              <span className="font-serif text-2xl font-black text-[#FF7A45]">-</span>
 
               {/* Box Skor Tim B */}
               <div className="relative">
-                <span className="absolute -top-2 left-3 bg-[#2D0D06] px-1.5 text-[9px] font-bold uppercase tracking-wider text-[#FF7A45]">
+                <span className="absolute -top-2 left-3 bg-[#2D0D06] px-1.5 text-[9px] font-bold uppercase tracking-wider text-[#FF7A45] rounded">
                   Tim B
                 </span>
                 <input
@@ -271,8 +295,13 @@ export default function MatchFormModal({ players, initial, onSubmit, onClose }: 
                   placeholder="0"
                   value={gamesB}
                   onChange={(e) => setGamesB(e.target.value)}
-                  style={{ colorScheme: 'dark' }}
-                  className="w-full rounded-2xl border-2 border-[#FF7A45]/50 bg-[#120402] py-3 text-center font-serif text-3xl font-black text-[#FF7A45] placeholder:text-[#FF7A45]/30 focus:border-[#FF7A45] focus:outline-none focus:ring-2 focus:ring-[#FF7A45]/40 shadow-inner"
+                  style={{
+                    colorScheme: 'dark',
+                    color: '#FF7A45',
+                    backgroundColor: '#120402',
+                    borderColor: 'rgba(255, 122, 69, 0.5)',
+                  }}
+                  className="w-full rounded-2xl border-2 py-3 text-center font-serif text-3xl font-black outline-none focus:border-[#FF7A45] focus:ring-2 focus:ring-[#FF7A45]/40 shadow-inner"
                 />
               </div>
             </div>
@@ -286,18 +315,27 @@ export default function MatchFormModal({ players, initial, onSubmit, onClose }: 
           )}
 
           {/* FOOTER: TOMBOL AKSI */}
-          <div className="mt-2 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-2.5 pt-3 border-t border-white/15">
+          <div className="mt-2 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-2.5 pt-3 border-t border-white/10">
             <button
               type="button"
               onClick={onClose}
-              className="w-full sm:w-auto border border-white/30 bg-white/5 text-white/90 hover:bg-white/15 font-semibold px-6 py-2.5 rounded-xl transition-all text-xs uppercase tracking-wider text-center"
+              style={{
+                color: '#FDF8F5',
+                borderColor: 'rgba(255, 122, 69, 0.4)',
+                backgroundColor: 'rgba(255, 122, 69, 0.1)',
+              }}
+              className="w-full sm:w-auto border-2 font-bold px-6 py-2.5 rounded-xl transition-all text-xs uppercase tracking-wider text-center hover:bg-[#FF7A45]/20 active:scale-95"
             >
               Batal
             </button>
             <button
               type="submit"
               disabled={saving}
-              className="w-full sm:w-auto bg-gradient-to-r from-[#B84013] to-[#FF7A45] text-white font-bold px-7 py-2.5 rounded-xl shadow-lg shadow-[#B84013]/50 hover:brightness-110 active:scale-95 transition-all text-xs uppercase tracking-wider disabled:opacity-50 text-center"
+              style={{
+                background: 'linear-gradient(to right, #B84013, #FF7A45)',
+                color: '#FFFFFF',
+              }}
+              className="w-full sm:w-auto font-bold px-7 py-2.5 rounded-xl shadow-lg shadow-[#B84013]/50 hover:brightness-110 active:scale-95 transition-all text-xs uppercase tracking-wider disabled:opacity-50 text-center"
             >
               {saving ? 'Menyimpan...' : isEdit ? 'Simpan Perubahan' : 'Simpan Match'}
             </button>
