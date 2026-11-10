@@ -19,24 +19,23 @@ export const PlayerCard = forwardRef<HTMLDivElement, PlayerCardProps>(
     return (
       <div
         ref={ref}
-        className={`relative aspect-square w-full rounded-3xl bg-[#0F0402] border border-white/15 overflow-hidden shadow-2xl select-none group transition-all duration-300 ${
-          isPOTM ? 'shadow-[0_0_35px_rgba(255,122,69,0.3)] border-[#FF7A45]/40' : 'hover:border-white/30'
+        className={`relative aspect-[3/4] w-full rounded-3xl bg-[#0F0402] border border-white/15 overflow-hidden shadow-2xl select-none group transition-all duration-300 ${
+          isPOTM ? 'shadow-[0_0_35px_rgba(255,122,69,0.35)] border-[#FF7A45]/50' : 'hover:border-white/30'
         } ${className}`}
       >
-        {/* --- 1. BACKGROUND FOTO (GRAYSCALE CONTRAST) / SILUET --- */}
+        {/* --- 1. AREA FOTO PORTRAIT (70% ATAS) --- */}
         <div className="absolute inset-0 w-full h-full bg-[#0F0402]">
           {player.photo_url ? (
             <img
               src={player.photo_url}
               alt={player.name}
               crossOrigin="anonymous"
-              className="w-full h-full object-cover grayscale contrast-125 brightness-95 group-hover:scale-105 transition-transform duration-700 ease-out"
+              className="w-full h-[72%] object-cover object-top grayscale contrast-125 brightness-95 group-hover:scale-105 transition-transform duration-700 ease-out"
             />
           ) : (
-            // Siluet Minimalis Elegan jika belum ada foto
-            <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-b from-[#1A0804] to-[#0F0402] opacity-80">
+            <div className="w-full h-[72%] flex flex-col items-center justify-center bg-gradient-to-b from-[#1A0804] to-[#0F0402] opacity-80">
               <svg
-                className="w-24 h-24 text-white/20 mb-2"
+                className="w-20 h-20 text-white/20 mb-2"
                 viewBox="0 0 24 24"
                 fill="currentColor"
               >
@@ -47,20 +46,21 @@ export const PlayerCard = forwardRef<HTMLDivElement, PlayerCardProps>(
           )}
         </div>
 
-        {/* --- 2. GRADIENT OVERLAY HITAM TIPIS & VIGNETTE --- */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0F0402] via-[#0F0402]/50 to-transparent pointer-events-none" />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-transparent pointer-events-none" />
+        {/* --- 2. GRADIENT OVERLAY HITAM TIPIS & TRANSISI BAWAH --- */}
+        {/* Gradient atas untuk memperjelas logo PATC */}
+        <div className="absolute top-0 inset-x-0 h-20 bg-gradient-to-b from-black/80 via-black/30 to-transparent pointer-events-none" />
+        
+        {/* Gradient bawah yang memisahkan area foto dengan panel teks */}
+        <div className="absolute bottom-0 inset-x-0 h-[45%] bg-gradient-to-t from-[#0F0402] via-[#0F0402]/95 to-transparent pointer-events-none" />
 
         {/* --- 3. HEADER OVERLAY: LOGO PATC & BADGE POTM --- */}
         <div className="absolute top-4 inset-x-4 flex items-center justify-between z-10">
-          {/* Logo PATC */}
-          <div className="flex items-center gap-2 bg-black/40 backdrop-blur-md px-3 py-1 rounded-full border border-white/10">
+          <div className="flex items-center gap-2 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 shadow-md">
             <div className="w-2 h-2 rounded-full bg-[#FF7A45] animate-pulse" />
             <span className="font-serif font-black tracking-wider text-xs text-[#FDF8F5]">PATC</span>
             <span className="text-[8px] font-mono tracking-widest text-[#FF7A45] uppercase">CLUB</span>
           </div>
 
-          {/* Badge POTM (Hanya muncul jika Player of the Month) */}
           {isPOTM && (
             <div className="flex items-center gap-1.5 bg-gradient-to-r from-amber-500 via-[#FF7A45] to-[#B84013] text-white px-3 py-1 rounded-full shadow-lg border border-amber-300/40 animate-bounce duration-1000">
               <span className="text-xs">👑</span>
@@ -71,7 +71,7 @@ export const PlayerCard = forwardRef<HTMLDivElement, PlayerCardProps>(
           )}
         </div>
 
-        {/* --- 4. ADMIN TRIGGER BUTTON (OVERLAY EDIT) --- */}
+        {/* --- 4. BUTTON EDIT ADMIN --- */}
         {isAdmin && onEditPhoto && (
           <button
             type="button"
@@ -79,7 +79,7 @@ export const PlayerCard = forwardRef<HTMLDivElement, PlayerCardProps>(
               e.stopPropagation();
               onEditPhoto();
             }}
-            className="absolute top-4 right-4 z-20 bg-black/70 hover:bg-[#B84013] text-white p-2 rounded-full backdrop-blur-md border border-white/20 transition-all opacity-0 group-hover:opacity-100"
+            className="absolute top-4 right-4 z-20 bg-black/70 hover:bg-[#B84013] text-white p-2 rounded-full backdrop-blur-md border border-white/20 transition-all opacity-0 group-hover:opacity-100 shadow-lg"
             title="Ubah Foto Pemain"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -89,20 +89,22 @@ export const PlayerCard = forwardRef<HTMLDivElement, PlayerCardProps>(
           </button>
         )}
 
-        {/* --- 5. BOTTOM OVERLAY: DETAIL NAMA, STATS & HANDLE --- */}
-        <div className="absolute bottom-4 inset-x-4 z-10 flex flex-col">
+        {/* --- 5. PANEL BAWAH: NAMA, DIVIDER & STATISTIK (DILUAR AREA WAJAH) --- */}
+        <div className="absolute bottom-3 inset-x-3.5 z-10 flex flex-col">
           {/* Nama Pemain */}
-          <h3 className="text-lg sm:text-xl md:text-2xl font-black uppercase tracking-wider text-[#FDF8F5] truncate drop-shadow-md">
-            {player.name}
-          </h3>
+          <div className="mb-1">
+            <h3 className="text-lg sm:text-xl md:text-2xl font-black uppercase tracking-wider text-[#FDF8F5] truncate drop-shadow-md">
+              {player.name}
+            </h3>
+          </div>
 
-          {/* Garis Divider Tipis */}
-          <div className="h-[1.5px] w-full bg-gradient-to-r from-white/30 via-[#FF7A45]/40 to-transparent my-2" />
+          {/* Garis Divider Terakota */}
+          <div className="h-[1.5px] w-full bg-gradient-to-r from-[#FF7A45] via-white/30 to-transparent mb-2" />
 
           {/* Box Statistik Ganda */}
-          <div className="grid grid-cols-2 gap-2 my-1">
+          <div className="grid grid-cols-2 gap-2">
             {/* MATCHES */}
-            <div className="flex flex-col items-center justify-center bg-black/40 backdrop-blur-md rounded-2xl py-1.5 border border-white/10">
+            <div className="flex flex-col items-center justify-center bg-[#1A0804]/90 backdrop-blur-md rounded-2xl py-2 border border-white/10 shadow-inner">
               <span className="text-base sm:text-lg font-black text-white leading-tight">
                 {matchesCount}
               </span>
@@ -112,7 +114,7 @@ export const PlayerCard = forwardRef<HTMLDivElement, PlayerCardProps>(
             </div>
 
             {/* WINRATE */}
-            <div className="flex flex-col items-center justify-center bg-black/40 backdrop-blur-md rounded-2xl py-1.5 border border-white/10">
+            <div className="flex flex-col items-center justify-center bg-[#1A0804]/90 backdrop-blur-md rounded-2xl py-2 border border-white/10 shadow-inner">
               <span className="text-base sm:text-lg font-black text-[#FF7A45] leading-tight">
                 {formattedWinRate}%
               </span>
@@ -123,7 +125,7 @@ export const PlayerCard = forwardRef<HTMLDivElement, PlayerCardProps>(
           </div>
 
           {/* Social Handle */}
-          <div className="text-center mt-2">
+          <div className="text-center mt-2.5">
             <span className="text-[9px] sm:text-[10px] text-white/50 tracking-[0.25em] uppercase font-mono">
               @patctennis
             </span>
