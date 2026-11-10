@@ -4,7 +4,7 @@ import AuthPage from '@/components/AuthPage';
 import LeaderboardPage from '@/components/LeaderboardPage';
 import { PlayerCardsView } from '@/components/PlayerCardsView';
 import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/lib/supabase'; // Pastikan path supabase client sesuai projectmu
+import { supabase } from '@/lib/supabase';
 import { Player, Match } from '@/types/playerCard';
 
 function App() {
@@ -19,13 +19,29 @@ function App() {
     if (state.status === 'signed-in' && state.profile) {
       async function fetchData() {
         try {
-          // Ambil data profiles/players
-          const { data: playersData } = await supabase.from('profiles').select('*');
-          if (playersData) setPlayers(playersData);
+          // 1. Ambil data dari tabel players (atau fallback ke profiles)
+          const { data: playersData } = await supabase.from('players').select('*');
+          if (playersData && playersData.length > 0) {
+            setPlayers(playersData as Player[]);
+          } else {
+            const { data: profilesData } = await supabase.from('profiles').select('*');
+            if (profilesData) {
+              setPlayers(
+                profilesData.map((p: any) => ({
+                  id: p.id,
+                  name: p.displayName || p.name || p.username || 'Member',
+                  profileId: p.id,
+                  photo_url: p.photo_url || null,
+                }))
+              );
+            }
+          }
 
-          // Ambil data matches
+          // 2. Ambil data matches
           const { data: matchesData } = await supabase.from('matches').select('*');
-          if (matchesData) setMatches(matchesData);
+          if (matchesData) {
+            setMatches(matchesData as Match[]);
+          }
         } catch (err) {
           console.error('Gagal mengambil data player cards:', err);
         }
@@ -90,42 +106,14 @@ function App() {
     );
   }
 
-  // 4. TAMPILAN UTAMA (DENGAN DUKUNGAN NAVIGASI VIEWS)
+  // Identifikasi email/username user aktif
+  const currentUserIdent = (state.profile as any).email || state.profile.username || '';
+
+  // 4. TAMPILAN UTAMA (DENGAN NAVIGASI VIEWS)
   return (
     <div className="min-h-screen bg-transparent text-[#FDF8F5]">
-      {/* Tombol Pengalih Menu Sementara */}
+      {/* Tombol Pengalih Menu Floating Top-Right */}
       <div className="fixed top-4 right-6 z-50 flex items-center gap-2 bg-black/60 backdrop-blur-md border border-white/15 px-3 py-1.5 rounded-full shadow-lg">
         <button
           onClick={() => setCurrentView('leaderboard')}
-          className={`text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full transition-all ${
-            currentView === 'leaderboard' ? 'bg-[#FF7A45] text-white' : 'text-white/60 hover:text-white'
-          }`}
-        >
-          Klasemen
-        </button>
-        <button
-          onClick={() => setCurrentView('cards')}
-          className={`text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full transition-all ${
-            currentView === 'cards' ? 'bg-[#FF7A45] text-white' : 'text-white/60 hover:text-white'
-          }`}
-        >
-          Player Cards 👑
-        </button>
-      </div>
-
-      {/* Render Halaman Berdasarkan State currentView */}
-      {currentView === 'leaderboard' ? (
-        <LeaderboardPage profile={state.profile} onSignOut={signOut} />
-      ) : (
-        <PlayerCardsView
-          players={players}
-          matches={matches}
-          currentUserEmail={state.profile.email || ''}
-          currentUserRole={state.profile.role || 'member'}
-        />
-      )}
-    </div>
-  );
-}
-
-export default App;
+          className={`text-[11px
