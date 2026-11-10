@@ -12,23 +12,42 @@ export type AuthState =
 export function useAuth() {
   const [state, setState] = useState<AuthState>({ status: 'loading' });
 
-  // Load session dari LocalStorage saat web dibuka
+  // Sync session dari Supabase database
   useEffect(() => {
-    const savedProfile = localStorage.getItem(STORAGE_KEY);
-    if (savedProfile) {
-      try {
-        const profile = JSON.parse(savedProfile);
-        setState({ status: 'signed-in', profile });
-      } catch {
-        localStorage.removeItem(STORAGE_KEY);
-        setState({ status: 'signed-out' });
+    async function loadSession() {
+      const savedProfile = localStorage.getItem(STORAGE_KEY);
+      if (savedProfile) {
+        try {
+          const parsed = JSON.parse(savedProfile);
+          // Ambil data terbaru dari tabel profiles di Supabase
+          const { data } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', parsed.id)
+            .maybeSingle();
+
+          if (data) {
+            const profile: Profile = {
+              id: data.id,
+              username: data.username,
+              name: data.display_name || data.name || data.username,
+              role: data.role || 'master_admin',
+              photo_url: data.photo_url || null,
+            } as any;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
+            setState({ status: 'signed-in', profile });
+            return;
+          }
+        } catch {
+          localStorage.removeItem(STORAGE_KEY);
+        }
       }
-    } else {
       setState({ status: 'signed-out' });
     }
+    loadSession();
   }, []);
 
-  // 1. LOGIN (Cek Username & Password murni dari tabel profiles)
+  // 1. LOGIN
   const signIn = async (username: string, password: string): Promise<string | null> => {
     try {
       const trimmedUsername = username.trim();
@@ -48,7 +67,7 @@ export function useAuth() {
         id: data.id,
         username: data.username,
         name: data.display_name || data.name || data.username,
-        role: data.role || 'member',
+        role: data.role || 'master_admin',
         photo_url: data.photo_url || null,
       } as any;
 
@@ -60,12 +79,11 @@ export function useAuth() {
     }
   };
 
-  // 2. SIGN UP (Simpan Username & Password murni ke tabel profiles)
+  // 2. SIGN UP
   const signUp = async (username: string, password: string): Promise<string | null> => {
     try {
       const trimmedUsername = username.trim();
 
-      // Cek ketersediaan username
       const { data: existing } = await supabase
         .from('profiles')
         .select('id')
@@ -76,7 +94,8 @@ export function useAuth() {
         return 'Username sudah dipakai. Coba username lain.';
       }
 
-      // Buat akun baru langsung ke tabel profiles
+      const isMaster = trimmedUsername.toLowerCase() === 'nohan';
+
       const { data, error } = await supabase
         .from('profiles')
         .insert({
@@ -84,7 +103,7 @@ export function useAuth() {
           password: password,
           display_name: trimmedUsername,
           name: trimmedUsername,
-          role: 'member',
+          role: isMaster ? 'master_admin' : 'member',
         })
         .select()
         .single();
