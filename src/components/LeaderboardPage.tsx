@@ -102,6 +102,23 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
     return best;
   }, [players, playerForm]);
 
+  // ========================================================
+  // FORMULA & FORMAT KALKULASI WIN RATE (ANTI-BUG 7500%)
+  // ========================================================
+  const formattedWinRate = useMemo(() => {
+    if (!potm || potm.winRate === undefined || potm.winRate === null) return '0%';
+    let rate = potm.winRate;
+
+    // Normalisasi jika masih dalam bentuk desimal 0 - 1 (contoh: 0.7534 -> 75.34)
+    if (rate > 0 && rate <= 1) {
+      rate = rate * 100;
+    }
+
+    // Jika pas bilangan bulat (misal 75%), tampilkan tanpa koma.
+    // Jika pecahan (misal 75.34%), bulatkan 1 desimal menjadi "75,3%"
+    return rate % 1 === 0 ? `${rate.toFixed(0)}%` : `${rate.toFixed(1).replace('.', ',')}%`;
+  }, [potm]);
+
   const handleDelete = async (match: Match) => {
     if (!window.confirm('Hapus pertandingan ini dari riwayat dan klasemen?')) return;
     try {
@@ -121,8 +138,6 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
 
   const displayName = profile.username || 'Admin';
   const initialLetter = displayName.slice(0, 2).toUpperCase();
-
-  // Nama akun dinamis untuk ucapan 3D blocky
   const accountMotivationName = (profile?.username || displayName || 'PATC').toUpperCase();
 
   const renderContent = () => {
@@ -184,12 +199,12 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
       <div className="space-y-6">
         {/* TOP STATS CARDS (3 LINGKARAN KAWAT TIPIS) */}
         <div className="relative flex items-center justify-center gap-2 sm:gap-6 py-3">
-          {/* Stat 1: Win Rate */}
+          {/* Stat 1: Win Rate (DENGAN PEMBULATAN 1 DESIMAL) */}
           <div className="relative flex h-24 w-24 sm:h-28 sm:w-28 flex-col items-center justify-center rounded-full border border-white/15 bg-white/[0.03] text-center backdrop-blur-sm">
             <span className="absolute -top-1.5 -right-1.5 text-[10px] font-mono text-white/30">+</span>
             <Crown className="mb-0.5 h-3 w-3 text-[#D4AF37]" />
             <p className="font-serif text-lg sm:text-xl font-bold leading-none text-[#FDF8F5]">
-              {potm ? `${Math.round(potm.winRate * 100)}%` : '0%'}
+              {formattedWinRate}
             </p>
             <p className="mt-1 text-[8px] font-sans font-medium tracking-widest text-[#FDF8F5]/80 uppercase">
               Win Rate
@@ -468,9 +483,7 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
               </table>
             </div>
 
-            {/* ======================================================== */}
             {/* UCAPAN MOTIVASI 3D: "VAMOS [NAMA AKUN]!!!" DI BAWAH TABEL */}
-            {/* ======================================================== */}
             <div className="mt-12 mb-16 text-center select-none">
               <h2 className="font-black italic text-5xl sm:text-6xl lg:text-7xl uppercase tracking-tighter transform -rotate-3 sm:-rotate-6 transition-transform duration-300">
                 <span className="block text-[#FF5500] drop-shadow-[0_8px_0_#0F0402]">
