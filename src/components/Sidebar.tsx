@@ -76,22 +76,18 @@ export default function Sidebar({
 
   return (
     <>
-      {/* 1. BACKGROUND OVERLAY (BACKDROP BLUR) */}
+      {/* 1. BACKDROP OVERLAY */}
       {mobileOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm lg:hidden transition-opacity"
+          className="fixed inset-0 z-40 bg-black/75 backdrop-blur-sm lg:hidden transition-opacity"
           onClick={onCloseMobile}
           aria-hidden="true"
         />
       )}
 
-      {/* 
-        2. FLOATING DRAWER CONTAINER:
-        - Mobile: Melayang (inset-y-3 left-3, rounded-3xl, shadow-2xl, p-5)
-        - Desktop (lg:): Berubah otomatis menjadi sidebar kokoh docked di kiri layar
-      */}
+      {/* 2. FLOATING DRAWER CONTAINER */}
       <aside
-        className={`fixed inset-y-3 left-3 z-50 flex w-[85%] max-w-[320px] flex-col rounded-3xl border border-white/15 bg-gradient-to-b from-[#1E0904] via-[#2D0D06] to-[#0F0402] p-5 shadow-2xl shadow-black/80 backdrop-blur-xl transition-transform duration-300 ease-out lg:inset-y-0 lg:left-0 lg:z-30 lg:w-60 lg:rounded-none lg:border-r lg:border-y-0 lg:border-l-0 lg:border-white/10 lg:bg-[#120402]/95 lg:p-4 lg:shadow-none ${
+        className={`fixed inset-y-3 left-3 z-50 flex w-[85%] max-w-[320px] flex-col rounded-3xl border border-white/20 bg-gradient-to-b from-[#1E0904] via-[#2D0D06] to-[#0F0402] p-5 shadow-2xl shadow-black/90 backdrop-blur-xl transition-transform duration-300 ease-out lg:inset-y-0 lg:left-0 lg:z-30 lg:w-60 lg:rounded-none lg:border-r lg:border-y-0 lg:border-l-0 lg:border-white/10 lg:bg-[#120402]/95 lg:p-4 lg:shadow-none ${
           mobileOpen ? 'translate-x-0' : '-translate-x-[125%] lg:translate-x-0'
         }`}
       >
@@ -103,18 +99,17 @@ export default function Sidebar({
               <p className="truncate font-serif text-sm font-bold uppercase leading-tight tracking-wide text-[#FDF8F5]">
                 Panic At The Court
               </p>
-              <p className="text-[9px] uppercase tracking-[0.25em] text-[#FF7A45] font-sans">
+              <p className="text-[9px] uppercase tracking-[0.25em] text-[#FF7A45] font-sans font-semibold">
                 Tennis Club
               </p>
             </div>
           </div>
 
-          {/* TOMBOL CLOSE (X) MELINGKAR TRANSPARAN */}
           <button
             type="button"
             onClick={onCloseMobile}
             aria-label="Tutup menu"
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/15 text-white/80 transition hover:bg-white/10 lg:hidden"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/20 text-[#FDF8F5] transition hover:bg-white/10 lg:hidden"
           >
             <X className="h-4 w-4" aria-hidden="true" />
           </button>
@@ -122,10 +117,11 @@ export default function Sidebar({
 
         {/* LIST NAVIGASI */}
         <nav className="flex-1 overflow-y-auto py-4">
-          {/* KATEGORI NAVIGASI */}
-          <p className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-widest text-[#FF7A45]">
+          {/* JUDUL KATEGORI: NAVIGASI */}
+          <p className="px-3 pb-2.5 text-[11px] font-bold uppercase tracking-widest text-[#FF7A45]">
             Navigasi
           </p>
+
           <ul className="flex flex-col gap-1.5">
             {NAV_ITEMS.map((item) => {
               const active = isItemActive(item);
@@ -142,10 +138,11 @@ export default function Sidebar({
                     }
                     className={`flex w-full items-center gap-3 px-3 py-2.5 text-left text-xs transition-all ${
                       active
-                        ? 'rounded-2xl border border-white/20 bg-gradient-to-r from-[#B84013] to-[#FF7A45] font-medium text-white shadow-lg shadow-[#B84013]/40'
-                        : 'rounded-2xl text-white/70 hover:bg-white/5 hover:text-white'
+                        ? 'rounded-2xl border border-white/25 bg-gradient-to-r from-[#B84013] to-[#FF7A45] text-white font-semibold drop-shadow shadow-lg shadow-[#B84013]/40'
+                        : 'rounded-2xl text-[#FDF8F5] font-medium hover:bg-white/10 hover:text-white'
                     }`}
                   >
+                    {/* Ikon: Putih jika aktif, Oranye Terang jika tidak aktif */}
                     <Icon
                       className={`h-4 w-4 shrink-0 ${active ? 'text-white' : 'text-[#FF7A45]'}`}
                       aria-hidden="true"
@@ -157,10 +154,10 @@ export default function Sidebar({
             })}
           </ul>
 
-          {/* KATEGORI ADMIN (KHUSUS MASTER) */}
+          {/* KATEGORI ADMIN */}
           {isMaster && (
             <>
-              <p className="mt-5 px-3 pb-2 text-[10px] font-semibold uppercase tracking-widest text-[#FF7A45]">
+              <p className="mt-6 px-3 pb-2.5 text-[11px] font-bold uppercase tracking-widest text-[#FF7A45]">
                 Admin
               </p>
               <ul className="flex flex-col gap-1.5">
@@ -170,8 +167,8 @@ export default function Sidebar({
                     onClick={() => choose(() => onChangeView('approvals'))}
                     className={`flex w-full items-center gap-3 px-3 py-2.5 text-left text-xs transition-all ${
                       view === 'approvals'
-                        ? 'rounded-2xl border border-white/20 bg-gradient-to-r from-[#B84013] to-[#FF7A45] font-medium text-white shadow-lg shadow-[#B84013]/40'
-                        : 'rounded-2xl text-white/70 hover:bg-white/5 hover:text-white'
+                        ? 'rounded-2xl border border-white/25 bg-gradient-to-r from-[#B84013] to-[#FF7A45] text-white font-semibold drop-shadow shadow-lg shadow-[#B84013]/40'
+                        : 'rounded-2xl text-[#FDF8F5] font-medium hover:bg-white/10 hover:text-white'
                     }`}
                   >
                     <ClipboardCheck
@@ -190,7 +187,7 @@ export default function Sidebar({
                   <button
                     type="button"
                     onClick={() => choose(onOpenSettings)}
-                    className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left text-xs text-white/70 transition-all hover:bg-white/5 hover:text-white"
+                    className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left text-xs text-[#FDF8F5] font-medium transition-all hover:bg-white/10 hover:text-white"
                   >
                     <Settings className="h-4 w-4 shrink-0 text-[#FF7A45]" aria-hidden="true" />
                     <span className="truncate">Pengaturan Master</span>
@@ -201,28 +198,26 @@ export default function Sidebar({
           )}
         </nav>
 
-        {/* 4. FOOTER: CARD PROFIL USER & LOGOUT */}
+        {/* 3. FOOTER: CARD USER (@admin) & LOGOUT */}
         <div className="border-t border-white/10 pt-4">
-          {/* Card User */}
-          <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-3 backdrop-blur-md">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#FF7A45]/30 bg-[#FF7A45]/10 text-[#FF7A45]">
+          <div className="flex items-center gap-3 rounded-2xl border border-white/15 bg-white/5 p-3 backdrop-blur-md">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#FF7A45]/40 bg-[#FF7A45]/15 text-[#FF7A45]">
               <User className="h-4 w-4" aria-hidden="true" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="truncate font-sans text-xs font-semibold text-[#FDF8F5]">
+              <p className="truncate font-sans text-xs text-white font-medium">
                 @{username}
               </p>
-              <p className="text-[9px] uppercase tracking-wider text-white/50 font-sans">
+              <p className="text-[11px] uppercase tracking-wider text-white/60 font-sans">
                 {isMaster ? 'Master Admin' : 'Member'}
               </p>
             </div>
           </div>
 
-          {/* Tombol Logout */}
           <button
             type="button"
             onClick={() => choose(onSignOut)}
-            className="mt-3 flex w-full items-center gap-2 px-2 text-xs font-medium text-red-400 transition-colors hover:text-red-300"
+            className="mt-3 flex w-full items-center gap-2 px-2 text-xs text-red-400 font-medium transition-colors hover:text-red-300"
           >
             <LogOut className="h-4 w-4 shrink-0" aria-hidden="true" />
             <span>Keluar Akun</span>
