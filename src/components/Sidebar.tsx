@@ -91,20 +91,25 @@ export default function Sidebar({
           mobileOpen ? 'translate-x-0' : '-translate-x-[125%] lg:translate-x-0'
         }`}
       >
-        {/* HEADER DRAWER: LOGO & BRANDING */}
+        {/* ======================================================== */}
+        {/* HEADER DRAWER: LOGO & BRANDING "PATC - TENNIS CLUB" */}
+        {/* ======================================================== */}
         <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-4">
-          <div className="flex min-w-0 items-center gap-3">
-            <ClubLogo className="h-10 w-10 shrink-0 rounded-full border border-[#FF7A45]/40 p-0.5 shadow-md" />
-            <div className="min-w-0">
-              <p className="truncate font-serif text-sm font-bold uppercase leading-tight tracking-wide text-[#FDF8F5]">
-                Panic At The Court
-              </p>
-              <p className="text-[9px] uppercase tracking-[0.25em] text-[#FF7A45] font-sans font-semibold">
+          <div className="flex items-center gap-3">
+            <ClubLogo className="h-11 w-11 shrink-0 rounded-full border border-[#FF7A45]/40 p-0.5 shadow-md" />
+            <div className="flex flex-col">
+              {/* Judul Singkat PATC Tanpa Truncate */}
+              <span className="font-serif text-2xl font-bold uppercase leading-none tracking-widest text-[#FDF8F5]">
+                PATC
+              </span>
+              {/* Sub-judul Tennis Club */}
+              <span className="mt-1 font-sans text-[10px] font-semibold uppercase tracking-[0.25em] text-[#FF7A45]">
                 Tennis Club
-              </p>
+              </span>
             </div>
           </div>
 
+          {/* Tombol Close (X) */}
           <button
             type="button"
             onClick={onCloseMobile}
@@ -142,7 +147,6 @@ export default function Sidebar({
                         : 'rounded-2xl text-[#FDF8F5] font-medium hover:bg-white/10 hover:text-white'
                     }`}
                   >
-                    {/* Ikon: Putih jika aktif, Oranye Terang jika tidak aktif */}
                     <Icon
                       className={`h-4 w-4 shrink-0 ${active ? 'text-white' : 'text-[#FF7A45]'}`}
                       aria-hidden="true"
@@ -198,7 +202,7 @@ export default function Sidebar({
           )}
         </nav>
 
-        {/* 3. FOOTER: CARD USER (@admin) & LOGOUT */}
+        {/* FOOTER: CARD USER (@admin) & LOGOUT */}
         <div className="border-t border-white/10 pt-4">
           <div className="flex items-center gap-3 rounded-2xl border border-white/15 bg-white/5 p-3 backdrop-blur-md">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#FF7A45]/40 bg-[#FF7A45]/15 text-[#FF7A45]">
