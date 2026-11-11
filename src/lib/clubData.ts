@@ -1,7 +1,7 @@
 import { supabase } from '@/lib/supabase';
 import type { Match, MatchFormat, MatchInput, MatchStatus, Player } from '@/types';
 
-// Helper konversi data profil akun menjadi Player
+// Helper konversi profil menjadi Player
 const toPlayer = (row: any): Player => ({
   id: String(row.id),
   name: row.display_name || row.name || row.username || 'Pemain',
@@ -11,7 +11,7 @@ const toPlayer = (row: any): Player => ({
 
 // Helper konversi data match
 const toMatch = (row: any): Match => ({
-  id: row.id,
+  id: String(row.id),
   date: row.match_date || row.date || new Date().toISOString().slice(0, 10),
   format: (row.format as MatchFormat) || 'singles',
   teamA: row.team_a || row.teamA || [],
@@ -20,55 +20,32 @@ const toMatch = (row: any): Match => ({
   gamesB: Number(row.games_b ?? row.gamesB ?? 0),
   status: (row.approval_status || row.status || 'approved') as MatchStatus,
   createdBy: row.created_by || null,
+  created_at: row.created_at,
 });
 
-// 1. AMBIL SEMUA PEMAIN DARI TABEL PROFILES (SELECT '*')
+// 1. AMBIL SEMUA PEMAIN DARI PROFILES
 export async function fetchPlayers(): Promise<Player[]> {
   const playerList: Player[] = [];
-  const registeredIds = new Set<string>();
 
   try {
-    // Gunakan select('*') agar tidak error jika ada kolom yang belum dibuat di Supabase
-    const { data: profiles, error: profileErr } = await supabase
+    const { data: profiles, error } = await supabase
       .from('profiles')
-      .select('*');
+      .select('*')
+      .order('username', { ascending: true });
 
-    if (!profileErr && profiles && profiles.length > 0) {
+    if (!error && profiles) {
       for (const p of profiles) {
         playerList.push(toPlayer(p));
-        registeredIds.add(p.id);
       }
     }
   } catch (err) {
     console.warn('Gagal ambil data profiles:', err);
   }
 
-  try {
-    // Ambil juga dari tabel club_players jika ada
-    const { data: clubPlayers } = await supabase
-      .from('club_players')
-      .select('*');
-
-    if (clubPlayers && clubPlayers.length > 0) {
-      for (const cp of clubPlayers) {
-        if (!registeredIds.has(cp.id) && !registeredIds.has(cp.profile_id)) {
-          playerList.push({
-            id: cp.id,
-            name: cp.name || cp.username || 'Pemain',
-            profileId: cp.profile_id || null,
-          });
-          registeredIds.add(cp.id);
-        }
-      }
-    }
-  } catch (err) {
-    // Abaikan jika tabel club_players tidak ada
-  }
-
   return playerList;
 }
 
-// 2. AMBIL SEMUA MATCH
+// 2. AMBIL SEMUA RIWAYAT MATCH
 export async function fetchMatches(): Promise<Match[]> {
   try {
     const { data: clubMatches, error } = await supabase
@@ -80,20 +57,7 @@ export async function fetchMatches(): Promise<Match[]> {
       return clubMatches.map(toMatch);
     }
   } catch (err) {
-    // Fallback ke matches
-  }
-
-  try {
-    const { data: fallbackMatches } = await supabase
-      .from('matches')
-      .select('*')
-      .order('date', { ascending: false });
-
-    if (fallbackMatches) {
-      return fallbackMatches.map(toMatch);
-    }
-  } catch (err) {
-    // Tidak apa-apa jika belum ada match
+    console.warn('Tabel club_matches belum ada atau belum diisi:', err);
   }
 
   return [];
@@ -111,23 +75,11 @@ export async function insertMatch(input: MatchInput, status: 'pending' | 'approv
     approval_status: status,
   };
 
-  const { error: clubError } = await supabase.from('club_matches').insert(rowPayload);
-  if (!clubError) return;
+  const { error } = await supabase.from('club_matches').insert(rowPayload);
 
-  const fallbackPayload = {
-    date: input.date,
-    format: input.format,
-    teamA: input.teamA,
-    teamB: input.teamB,
-    gamesA: input.gamesA,
-    gamesB: input.gamesB,
-    status: status,
-  };
-
-  const { error: fallbackError } = await supabase.from('matches').insert(fallbackPayload);
-  if (fallbackError) {
-    console.error('Gagal simpan pertandingan:', clubError || fallbackError);
-    throw new Error(clubError?.message || fallbackError.message || 'Gagal menyimpan match');
+  if (error) {
+    console.error('Error simpan match:', error);
+    throw new Error(error.message);
   }
 }
 
@@ -138,9 +90,7 @@ export async function reviewMatch(matchId: string, status: 'approved' | 'rejecte
     .update({ approval_status: status })
     .eq('id', matchId);
 
-  if (error) {
-    await supabase.from('matches').update({ status }).eq('id', matchId);
-  }
+  if (error) throw new Error(error.message);
 }
 
 // 5. UPDATE MATCH
@@ -155,22 +105,11 @@ export async function updateMatch(matchId: string, input: MatchInput): Promise<v
   };
 
   const { error } = await supabase.from('club_matches').update(rowPayload).eq('id', matchId);
-  if (error) {
-    await supabase.from('matches').update({
-      date: input.date,
-      format: input.format,
-      teamA: input.teamA,
-      teamB: input.teamB,
-      gamesA: input.gamesA,
-      gamesB: input.gamesB,
-    }).eq('id', matchId);
-  }
+  if (error) throw new Error(error.message);
 }
 
 // 6. HAPUS MATCH
 export async function removeMatch(matchId: string): Promise<void> {
   const { error } = await supabase.from('club_matches').delete().eq('id', matchId);
-  if (error) {
-    await supabase.from('matches').delete().eq('id', matchId);
-  }
+  if (error) throw new Error(error.message);
 }
