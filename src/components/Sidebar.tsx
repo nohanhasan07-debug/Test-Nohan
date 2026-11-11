@@ -5,6 +5,7 @@ import {
   LayoutDashboard,
   LogOut,
   Percent,
+  PlusCircle,
   Settings,
   Swords,
   User,
@@ -25,6 +26,7 @@ interface SidebarProps {
   onChangeView: (view: AppView) => void;
   onChangeTab: (tab: LeaderboardTab) => void;
   onOpenSettings: () => void;
+  onOpenLogMatch?: () => void; // Tombol Log Match di Sidebar
   onSignOut: () => void;
   mobileOpen: boolean;
   onCloseMobile: () => void;
@@ -53,6 +55,7 @@ export default function Sidebar({
   onChangeView,
   onChangeTab,
   onOpenSettings,
+  onOpenLogMatch,
   onSignOut,
   mobileOpen,
   onCloseMobile,
@@ -85,7 +88,7 @@ export default function Sidebar({
         />
       )}
 
-      {/* 2. SIDEBAR CONTAINER: DESKTOP DOCKED (lg:w-64) & MOBILE FLOATING */}
+      {/* 2. SIDEBAR CONTAINER */}
       <aside
         className={`fixed inset-y-3 left-3 z-50 flex w-[85%] max-w-[320px] flex-col rounded-3xl border border-white/20 bg-gradient-to-b from-[#1E0904] via-[#2D0D06] to-[#0F0402] p-5 shadow-2xl shadow-black/90 backdrop-blur-xl transition-transform duration-300 ease-out lg:inset-y-0 lg:left-0 lg:z-30 lg:w-64 lg:rounded-none lg:border-r lg:border-y-0 lg:border-l-0 lg:border-white/10 lg:bg-[#120402]/95 lg:p-5 lg:shadow-none ${
           mobileOpen ? 'translate-x-0' : '-translate-x-[125%] lg:translate-x-0'
@@ -115,9 +118,23 @@ export default function Sidebar({
           </button>
         </div>
 
+        {/* TOMBOL LOG MATCH PERMANEN DI SIDEBAR */}
+        {onOpenLogMatch && (
+          <div className="pt-4 pb-2">
+            <button
+              type="button"
+              onClick={() => choose(onOpenLogMatch)}
+              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#B84013] to-[#FF7A45] py-2.5 px-4 text-xs font-bold uppercase tracking-wider text-white shadow-lg shadow-[#B84013]/40 transition-all hover:brightness-110 active:scale-95"
+            >
+              <PlusCircle className="h-4 w-4" />
+              <span>+ Log Match</span>
+            </button>
+          </div>
+        )}
+
         {/* LIST NAVIGASI */}
-        <nav className="flex-1 overflow-y-auto py-5">
-          <p className="px-3 pb-2.5 text-[11px] font-bold uppercase tracking-widest text-[#FF7A45]">
+        <nav className="flex-1 overflow-y-auto py-3">
+          <p className="px-3 pb-2 text-[11px] font-bold uppercase tracking-widest text-[#FF7A45]">
             Navigasi
           </p>
 
@@ -152,11 +169,11 @@ export default function Sidebar({
             })}
           </ul>
 
-          {/* KATEGORI ADMIN */}
+          {/* KATEGORI ADMIN (Persetujuan & Pengaturan Master) */}
           {isMaster && (
             <>
-              <p className="mt-6 px-3 pb-2.5 text-[11px] font-bold uppercase tracking-widest text-[#FF7A45]">
-                Admin
+              <p className="mt-6 px-3 pb-2 text-[11px] font-bold uppercase tracking-widest text-[#FF7A45]">
+                Admin Panel
               </p>
               <ul className="flex flex-col gap-1.5">
                 <li>
@@ -196,7 +213,7 @@ export default function Sidebar({
           )}
         </nav>
 
-        {/* FOOTER: CARD USER (@admin) & LOGOUT */}
+        {/* FOOTER: PROFIL USER & LOGOUT */}
         <div className="border-t border-white/10 pt-4">
           <div className="flex items-center gap-3 rounded-2xl border border-white/15 bg-white/5 p-3 backdrop-blur-md">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#FF7A45]/40 bg-[#FF7A45]/15 text-[#FF7A45]">
@@ -207,7 +224,7 @@ export default function Sidebar({
                 @{username}
               </p>
               <p className="text-[10px] uppercase tracking-wider text-white/60 font-sans">
-                {isMaster ? 'Master Admin' : 'Member'}
+                {isMaster ? 'Master Admin 👑' : 'Member'}
               </p>
             </div>
           </div>
