@@ -1,15 +1,15 @@
 import { supabase } from '@/lib/supabase';
 import type { Match, MatchFormat, MatchInput, MatchStatus, Player } from '@/types';
 
-// Helper untuk mengubah data profil akun menjadi data pemain klub
+// Helper konversi data profil akun menjadi Player
 const toPlayer = (row: any): Player => ({
-  id: row.id,
+  id: String(row.id),
   name: row.display_name || row.name || row.username || 'Pemain',
-  profileId: row.profile_id || row.id || null,
+  profileId: row.id,
   photo_url: row.photo_url || null,
 });
 
-// Helper untuk format data pertandingan standar
+// Helper konversi data match
 const toMatch = (row: any): Match => ({
   id: row.id,
   date: row.match_date || row.date || new Date().toISOString().slice(0, 10),
@@ -22,17 +22,16 @@ const toMatch = (row: any): Match => ({
   createdBy: row.created_by || null,
 });
 
-// 1. FUNGSI AMBIL SEMUA PEMAIN (OTOMATIS DARI DAFTAR AKUN TERDAFTAR)
+// 1. AMBIL SEMUA PEMAIN DARI TABEL PROFILES (SELECT '*')
 export async function fetchPlayers(): Promise<Player[]> {
   const playerList: Player[] = [];
   const registeredIds = new Set<string>();
 
   try {
-    // Ambil semua akun yang ada di tabel profiles
+    // Gunakan select('*') agar tidak error jika ada kolom yang belum dibuat di Supabase
     const { data: profiles, error: profileErr } = await supabase
       .from('profiles')
-      .select('id, username, display_name, name, photo_url')
-      .order('username', { ascending: true });
+      .select('*');
 
     if (!profileErr && profiles && profiles.length > 0) {
       for (const p of profiles) {
@@ -41,22 +40,21 @@ export async function fetchPlayers(): Promise<Player[]> {
       }
     }
   } catch (err) {
-    console.warn('Catatan: Gagal menarik data dari profiles:', err);
+    console.warn('Gagal ambil data profiles:', err);
   }
 
   try {
-    // Ambil juga dari tabel club_players jika ada pemain non-akun
+    // Ambil juga dari tabel club_players jika ada
     const { data: clubPlayers } = await supabase
       .from('club_players')
-      .select('id, name, profile_id')
-      .order('name', { ascending: true });
+      .select('*');
 
     if (clubPlayers && clubPlayers.length > 0) {
       for (const cp of clubPlayers) {
         if (!registeredIds.has(cp.id) && !registeredIds.has(cp.profile_id)) {
           playerList.push({
             id: cp.id,
-            name: cp.name,
+            name: cp.name || cp.username || 'Pemain',
             profileId: cp.profile_id || null,
           });
           registeredIds.add(cp.id);
@@ -64,16 +62,15 @@ export async function fetchPlayers(): Promise<Player[]> {
       }
     }
   } catch (err) {
-    // Abaikan jika tabel club_players belum dibuat
+    // Abaikan jika tabel club_players tidak ada
   }
 
   return playerList;
 }
 
-// 2. FUNGSI AMBIL RIWAYAT MATCH DENGAN AMAN
+// 2. AMBIL SEMUA MATCH
 export async function fetchMatches(): Promise<Match[]> {
   try {
-    // Coba ambil dari tabel club_matches
     const { data: clubMatches, error } = await supabase
       .from('club_matches')
       .select('*')
@@ -83,11 +80,10 @@ export async function fetchMatches(): Promise<Match[]> {
       return clubMatches.map(toMatch);
     }
   } catch (err) {
-    // Coba tabel fallback
+    // Fallback ke matches
   }
 
   try {
-    // Fallback coba ke tabel matches jika namanya berbeda
     const { data: fallbackMatches } = await supabase
       .from('matches')
       .select('*')
@@ -97,13 +93,13 @@ export async function fetchMatches(): Promise<Match[]> {
       return fallbackMatches.map(toMatch);
     }
   } catch (err) {
-    // Tidak apa-apa jika belum ada match sama sekali
+    // Tidak apa-apa jika belum ada match
   }
 
   return [];
 }
 
-// 3. FUNGSI SIMPAN HASIL MATCH BARU
+// 3. SIMPAN MATCH BARU
 export async function insertMatch(input: MatchInput, status: 'pending' | 'approved'): Promise<void> {
   const rowPayload = {
     match_date: input.date,
@@ -118,7 +114,6 @@ export async function insertMatch(input: MatchInput, status: 'pending' | 'approv
   const { error: clubError } = await supabase.from('club_matches').insert(rowPayload);
   if (!clubError) return;
 
-  // Fallback simpan ke tabel matches jika club_matches belum siap
   const fallbackPayload = {
     date: input.date,
     format: input.format,
@@ -136,7 +131,7 @@ export async function insertMatch(input: MatchInput, status: 'pending' | 'approv
   }
 }
 
-// 4. FUNGSI PERSETUJUAN MATCH (MASTER ADMIN)
+// 4. PERSETUJUAN MATCH
 export async function reviewMatch(matchId: string, status: 'approved' | 'rejected'): Promise<void> {
   const { error } = await supabase
     .from('club_matches')
@@ -148,7 +143,7 @@ export async function reviewMatch(matchId: string, status: 'approved' | 'rejecte
   }
 }
 
-// 5. FUNGSI EDIT HASIL MATCH
+// 5. UPDATE MATCH
 export async function updateMatch(matchId: string, input: MatchInput): Promise<void> {
   const rowPayload = {
     match_date: input.date,
@@ -172,7 +167,7 @@ export async function updateMatch(matchId: string, input: MatchInput): Promise<v
   }
 }
 
-// 6. FUNGSI HAPUS MATCH
+// 6. HAPUS MATCH
 export async function removeMatch(matchId: string): Promise<void> {
   const { error } = await supabase.from('club_matches').delete().eq('id', matchId);
   if (error) {
