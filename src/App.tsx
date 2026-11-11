@@ -4,58 +4,39 @@ import AuthPage from '@/components/AuthPage';
 import LeaderboardPage from '@/components/LeaderboardPage';
 import { PlayerCardsView } from '@/components/PlayerCardsView';
 import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/lib/supabase';
+import { fetchPlayers, fetchMatches } from '@/lib/clubData';
 import { Player, Match } from '@/types/playerCard';
 
 function App() {
   const { state, signIn, signUp, signOut } = useAuth();
 
-  // State navigasi tampilan utama ('leaderboard' atau 'cards')
   const [currentView, setCurrentView] = useState<'leaderboard' | 'cards'>('leaderboard');
   const [players, setPlayers] = useState<Player[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
 
-  // Fetch data players & matches dari Supabase saat user sudah login
+  // Tarik data pemain & match secara real-time setiap ganti tab atau login
   useEffect(() => {
     if (state.status === 'signed-in' && state.profile) {
-      async function fetchData() {
+      async function syncData() {
         try {
-          // 1. Ambil data dari tabel players (fallback otomatis ke profiles jika tabel players belum terisi)
-          const { data: playersData } = await supabase.from('players').select('*');
-          if (playersData && playersData.length > 0) {
-            setPlayers(playersData as Player[]);
-          } else {
-            const { data: profilesData } = await supabase.from('profiles').select('*');
-            if (profilesData) {
-              setPlayers(
-                profilesData.map((p: any) => ({
-                  id: p.id,
-                  name: p.displayName || p.name || p.username || 'Member PATC',
-                  profileId: p.id,
-                  photo_url: p.photo_url || null,
-                }))
-              );
-            }
-          }
-
-          // 2. Ambil data matches dari Supabase
-          const { data: matchesData } = await supabase.from('matches').select('*');
-          if (matchesData) {
-            setMatches(matchesData as Match[]);
-          }
+          const [loadedPlayers, loadedMatches] = await Promise.all([
+            fetchPlayers(),
+            fetchMatches(),
+          ]);
+          setPlayers(loadedPlayers as any);
+          setMatches(loadedMatches as any);
         } catch (err) {
-          console.error('Gagal mengambil data untuk Player Cards:', err);
+          console.error('Gagal sinkronisasi data klub:', err);
         }
       }
-      fetchData();
+      void syncData();
     }
-  }, [state.status, state.profile]);
+  }, [state.status, state.profile, currentView]);
 
-  // 1. TAMPILAN LOADING (EDITORIAL AMBIENT GLOW)
+  // 1. TAMPILAN LOADING
   if (state.status === 'loading') {
     return (
       <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-[#0F0402] px-4">
-        {/* Ambient glow terakota */}
         <div className="absolute h-96 w-96 rounded-full bg-[#B84013]/20 blur-[120px] pointer-events-none" />
         <div className="relative flex flex-col items-center">
           <div className="relative mb-6">
@@ -75,26 +56,21 @@ function App() {
     );
   }
 
-  // 2. TAMPILAN AUTH (SIGN IN / SIGN UP)
+  // 2. TAMPILAN AUTH
   if (state.status === 'signed-out') {
     return <AuthPage onSignIn={signIn} onSignUp={signUp} />;
   }
 
-  // 3. TAMPILAN ERROR JIKA PROFIL BELUM TERDAFTAR
+  // 3. TAMPILAN JIKA PROFIL BELUM ADA
   if (!state.profile) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#0F0402] px-4">
         <div className="relative w-full max-w-md overflow-hidden rounded-3xl border border-[#FF7A45]/30 bg-[#1A0A06]/90 p-8 text-center shadow-2xl backdrop-blur-2xl">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-red-500/20 bg-red-500/10 text-red-400">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-            </svg>
-          </div>
           <h2 className="font-serif text-2xl font-bold tracking-tight text-[#FDF8F5]">
             Akun Belum Terdaftar
           </h2>
           <p className="mt-2 text-sm leading-relaxed text-[#FDF8F5]/60">
-            Akun Anda belum tersinkronisasi dengan master data. Silakan hubungi Master Admin klub.
+            Akun Anda belum tersinkronisasi. Silakan hubungi Master Admin.
           </p>
           <button
             type="button"
@@ -108,39 +84,39 @@ function App() {
     );
   }
 
-  // Fallback pengenal email/username untuk pengecekan admin
   const currentUserIdent = (state.profile as any).email || state.profile.username || '';
 
-  // 4. TAMPILAN UTAMA (KLASMEN & PLAYER CARDS)
+  // 4. TAMPILAN UTAMA
   return (
     <div className="min-h-screen bg-transparent text-[#FDF8F5]">
-      {/* Pengalih Menu (Floating Pill Nav) */}
-      <div className="fixed top-4 right-6 z-50 flex items-center gap-2 bg-black/70 backdrop-blur-md border border-white/15 px-3 py-1.5 rounded-full shadow-2xl">
+      {/* Tombol Tab Klasemen vs Player Cards */}
+      <div className="fixed top-4 right-6 z-50 flex items-center gap-2 bg-black/80 backdrop-blur-md border border-white/20 px-3 py-1.5 rounded-full shadow-2xl">
         <button
           type="button"
           onClick={() => setCurrentView('leaderboard')}
-          className={`text-[11px] font-bold uppercase tracking-wider px-3.5 py-1 rounded-full transition-all ${
+          style={
             currentView === 'leaderboard'
-              ? 'bg-[#FF7A45] text-white shadow-md'
-              : 'text-white/60 hover:text-white'
-          }`}
+              ? { backgroundColor: '#FF7A45', color: '#FFFFFF' }
+              : { color: 'rgba(255, 255, 255, 0.7)' }
+          }
+          className="text-xs font-bold uppercase tracking-wider px-4 py-1.5 rounded-full transition-all"
         >
           Klasemen
         </button>
         <button
           type="button"
           onClick={() => setCurrentView('cards')}
-          className={`text-[11px] font-bold uppercase tracking-wider px-3.5 py-1 rounded-full transition-all ${
+          style={
             currentView === 'cards'
-              ? 'bg-[#FF7A45] text-white shadow-md'
-              : 'text-white/60 hover:text-white'
-          }`}
+              ? { backgroundColor: '#FF7A45', color: '#FFFFFF' }
+              : { color: 'rgba(255, 255, 255, 0.7)' }
+          }
+          className="text-xs font-bold uppercase tracking-wider px-4 py-1.5 rounded-full transition-all"
         >
           Player Cards 👑
         </button>
       </div>
 
-      {/* Render Berdasarkan View Aktif */}
       {currentView === 'leaderboard' ? (
         <LeaderboardPage profile={state.profile} onSignOut={signOut} />
       ) : (
