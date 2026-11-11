@@ -43,7 +43,12 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
     deleteMatch,
   } = useClubData();
 
-  const isMaster = profile.role === 'master';
+  // Akun dianggap master jika role 'master', 'admin', atau username 'nohan'
+  const isMaster =
+    profile.role === 'master' ||
+    (profile as any).role === 'admin' ||
+    profile.username?.toLowerCase() === 'nohan';
+
   const pendingMatches = useMemo(() => reviewMatches.filter((m) => m.status === 'pending'), [reviewMatches]);
   const mySubmissions = useMemo(
     () => reviewMatches.filter((m) => m.createdBy === profile.id),
@@ -191,12 +196,11 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
     return (
       <div className="space-y-8">
         {/* ======================================================== */}
-        {/* 1. TOP STATS CARDS (DENGAN ANIMATE-PULSE HALO) */}
+        {/* 1. TOP STATS CARDS */}
         {/* ======================================================== */}
         <div className="relative flex items-center justify-center gap-3 sm:gap-8 py-2">
           {/* Card 1: Win Rate */}
           <div className="relative group flex flex-col items-center">
-            {/* Animasi Pendar Berdenyut */}
             <div className="absolute -inset-2 rounded-full bg-[#FF5500]/30 blur-xl pointer-events-none animate-pulse" />
             <div className="relative flex h-28 w-28 sm:h-32 sm:w-32 flex-col items-center justify-center rounded-full border border-white/25 bg-gradient-to-b from-[#2D0D06]/90 via-[#180602]/95 to-[#0F0402] text-center shadow-[0_0_35px_rgba(255,85,0,0.35)] backdrop-blur-md transition-transform duration-300 hover:scale-105">
               <span className="absolute -top-1.5 -right-1.5 text-[10px] font-mono text-white/30">+</span>
@@ -215,7 +219,6 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
 
           {/* Card 2: Total Match */}
           <div className="relative group flex flex-col items-center">
-            {/* Animasi Pendar Berdenyut */}
             <div className="absolute -inset-2 rounded-full bg-[#FF5500]/30 blur-xl pointer-events-none animate-pulse" />
             <div className="relative flex h-28 w-28 sm:h-32 sm:w-32 flex-col items-center justify-center rounded-full border border-white/25 bg-gradient-to-b from-[#2D0D06]/90 via-[#180602]/95 to-[#0F0402] text-center shadow-[0_0_35px_rgba(255,85,0,0.35)] backdrop-blur-md transition-transform duration-300 hover:scale-105">
               <span className="absolute -top-1.5 -right-1.5 text-[10px] font-mono text-white/30">+</span>
@@ -231,7 +234,6 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
 
           {/* Card 3: Top Streak */}
           <div className="relative group flex flex-col items-center">
-            {/* Animasi Pendar Berdenyut */}
             <div className="absolute -inset-2 rounded-full bg-[#FF5500]/30 blur-xl pointer-events-none animate-pulse" />
             <div className="relative flex h-28 w-28 sm:h-32 sm:w-32 flex-col items-center justify-center rounded-full border border-white/25 bg-gradient-to-b from-[#2D0D06]/90 via-[#180602]/95 to-[#0F0402] text-center shadow-[0_0_35px_rgba(255,85,0,0.35)] backdrop-blur-md transition-transform duration-300 hover:scale-105">
               <span className="absolute -top-1.5 -right-1.5 text-[10px] font-mono text-white/30">+</span>
@@ -258,7 +260,7 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
               Klasemen
             </h2>
 
-            {/* Toggle Switch Kontras */}
+            {/* Toggle Switch */}
             <div className="flex items-center gap-2">
               <button
                 type="button"
@@ -312,7 +314,7 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
             </div>
           </div>
 
-          {/* Dropdown Season Ringkas */}
+          {/* Dropdown Season */}
           <div className="flex items-center gap-2">
             <select
               aria-label="Pilih Season"
@@ -360,9 +362,7 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
               </span>
             </div>
 
-            {/* ======================================================== */}
-            {/* 2. TABEL KLASEMEN (DENGAN HOVER LIFT-UP TRANSITION) */}
-            {/* ======================================================== */}
+            {/* TABEL KLASEMEN */}
             <div className="relative overflow-hidden rounded-3xl border border-white/20 bg-[#120402]/40 backdrop-blur-2xl shadow-[0_25px_60px_rgba(0,0,0,0.8),inset_0_1px_1px_rgba(255,255,255,0.4),inset_0_-1px_1px_rgba(255,255,255,0.2)]">
               <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/50 to-transparent" />
 
@@ -391,12 +391,10 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
                           key={player.playerId}
                           className="group cursor-pointer transition-all duration-300 hover:bg-white/10 hover:-translate-y-0.5 hover:shadow-lg"
                         >
-                          {/* Rank */}
                           <td className="py-4 pl-5 pr-2 font-serif text-sm text-[#FDF8F5]/80">
                             {index + 1} <span className="text-[#FF7A45] font-bold">•</span>
                           </td>
 
-                          {/* Nama Pemain & Hot Streak Badge */}
                           <td className="py-4 px-3">
                             <div className="flex flex-col">
                               {streakCount >= 3 && (
@@ -410,7 +408,6 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
                             </div>
                           </td>
 
-                          {/* Indikator Form 5 Laga */}
                           <td className="py-4 px-3">
                             <div className="flex items-center justify-center gap-1.5">
                               {forms.slice(-5).map((f, i) => {
@@ -457,7 +454,6 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
                             </div>
                           </td>
 
-                          {/* Statistik Pertandingan */}
                           <td className="py-4 px-3 text-center text-[#FDF8F5] font-mono font-medium text-sm">
                             {player.mp}
                           </td>
@@ -483,11 +479,8 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
               <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
             </div>
 
-            {/* ======================================================== */}
-            {/* 3. UCAPAN MOTIVASI 3D (DENGAN AMBIENT GLOW ANIMASI) */}
-            {/* ======================================================== */}
+            {/* UCAPAN MOTIVASI */}
             <div className="relative mt-14 mb-16 text-center select-none">
-              {/* Pendar Ambient Glow di Belakang VAMOS */}
               <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-56 w-80 rounded-full bg-[#FF5500]/25 blur-[90px] animate-pulse" />
 
               <h2 className="relative font-black italic text-4xl sm:text-6xl uppercase tracking-tighter transform -rotate-3 select-none transition-transform duration-500 hover:rotate-0">
@@ -584,6 +577,7 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
         onChangeView={setView}
         onChangeTab={setTab}
         onOpenSettings={() => setSettingsOpen(true)}
+        onOpenLogMatch={() => setFormState({})}
         onSignOut={onSignOut}
         mobileOpen={mobileNavOpen}
         onCloseMobile={() => setMobileNavOpen(false)}
@@ -591,7 +585,7 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
 
       {/* AREA KONTEN UTAMA */}
       <div className="relative z-10 lg:pl-64">
-        {/* MOBILE TOPBAR (☰ DAN [AD]) */}
+        {/* MOBILE TOPBAR */}
         <header className="flex items-center justify-between px-5 pt-4 pb-1 lg:hidden">
           <button
             type="button"
@@ -636,9 +630,7 @@ export default function LeaderboardPage({ profile, onSignOut }: LeaderboardPageP
         </main>
       </div>
 
-      {/* ======================================================== */}
-      {/* 4. FLOATING ACTION BUTTON (DENGAN HOVER SCALE & GLOW) */}
-      {/* ======================================================== */}
+      {/* FLOATING ACTION BUTTON POJOK KANAN BAWAH */}
       {loaded && !loadError && (
         <button
           type="button"
