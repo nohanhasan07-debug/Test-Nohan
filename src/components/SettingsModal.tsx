@@ -3,7 +3,6 @@ import {
   X,
   Search,
   Shield,
-  ShieldAlert,
   Key,
   Edit2,
   Trash2,
@@ -35,15 +34,15 @@ export default function SettingsModal({ currentUserId, onClose }: SettingsModalP
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // State untuk form edit username
+  // State form edit username
   const [editingUsernameId, setEditingUsernameId] = useState<string | null>(null);
   const [newUsernameInput, setNewUsernameInput] = useState('');
 
-  // State untuk form reset password
+  // State form reset password
   const [resettingPasswordId, setResettingPasswordId] = useState<string | null>(null);
   const [newPasswordInput, setNewPasswordInput] = useState('');
 
-  // Tutup modal dengan tombol Escape
+  // Tutup dengan tombol Escape
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -52,7 +51,7 @@ export default function SettingsModal({ currentUserId, onClose }: SettingsModalP
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onClose]);
 
-  // Ambil semua daftar akun dari database
+  // Load daftar akun dari database
   const loadMembers = async () => {
     try {
       setLoading(true);
@@ -78,7 +77,7 @@ export default function SettingsModal({ currentUserId, onClose }: SettingsModalP
     void loadMembers();
   }, []);
 
-  // Filter daftar member berdasarkan pencarian
+  // Filter pencarian
   const filteredMembers = useMemo(() => {
     if (!searchQuery.trim()) return members;
     const q = searchQuery.toLowerCase();
@@ -89,7 +88,7 @@ export default function SettingsModal({ currentUserId, onClose }: SettingsModalP
     );
   }, [members, searchQuery]);
 
-  // 1. FUNGSI UBAH PERAN (MEMBER <-> MASTER)
+  // Ubah peran akun (Master <-> Member)
   const handleToggleRole = async (member: MemberAccount) => {
     if (member.id === currentUserId) {
       alert('Anda tidak bisa mengubah peran akun Anda sendiri.');
@@ -121,7 +120,7 @@ export default function SettingsModal({ currentUserId, onClose }: SettingsModalP
     }
   };
 
-  // 2. FUNGSI GANTI USERNAME
+  // Simpan perubahan username
   const handleSaveUsername = async (memberId: string) => {
     const trimmed = newUsernameInput.trim().toLowerCase();
     if (!trimmed) {
@@ -133,7 +132,6 @@ export default function SettingsModal({ currentUserId, onClose }: SettingsModalP
       setStatusMessage(null);
       setErrorMessage(null);
 
-      // Cek apakah username sudah dipakai akun lain
       const { data: taken } = await supabase
         .from('profiles')
         .select('id')
@@ -146,7 +144,6 @@ export default function SettingsModal({ currentUserId, onClose }: SettingsModalP
         return;
       }
 
-      // Update di profiles
       const { error: profileErr } = await supabase
         .from('profiles')
         .update({
@@ -158,7 +155,6 @@ export default function SettingsModal({ currentUserId, onClose }: SettingsModalP
 
       if (profileErr) throw profileErr;
 
-      // Update juga di tabel club_players jika terhubung
       await supabase
         .from('club_players')
         .update({ name: trimmed })
@@ -176,7 +172,7 @@ export default function SettingsModal({ currentUserId, onClose }: SettingsModalP
     }
   };
 
-  // 3. FUNGSI RESET PASSWORD
+  // Simpan password baru
   const handleSavePassword = async (memberId: string, username: string) => {
     if (!newPasswordInput || newPasswordInput.length < 6) {
       setErrorMessage('Password baru minimal 6 karakter.');
@@ -202,20 +198,14 @@ export default function SettingsModal({ currentUserId, onClose }: SettingsModalP
     }
   };
 
-  // 4. FUNGSI HAPUS AKUN
+  // Hapus akun
   const handleDeleteMember = async (member: MemberAccount) => {
     if (member.id === currentUserId) {
       alert('Anda tidak bisa menghapus akun Anda sendiri.');
       return;
     }
 
-    if (
-      !window.confirm(
-        `PERINGATAN: Apakah Anda yakin ingin menghapus permanen akun @${member.username}?`
-      )
-    ) {
-      return;
-    }
+    if (!window.confirm(`PERINGATAN: Hapus permanen akun @${member.username}?`)) return;
 
     try {
       setStatusMessage(null);
@@ -224,7 +214,6 @@ export default function SettingsModal({ currentUserId, onClose }: SettingsModalP
       const { error } = await supabase.from('profiles').delete().eq('id', member.id);
       if (error) throw error;
 
-      // Hapus juga dari club_players jika ada
       await supabase.from('club_players').delete().eq('profile_id', member.id);
 
       setMembers((prev) => prev.filter((m) => m.id !== member.id));
@@ -241,18 +230,18 @@ export default function SettingsModal({ currentUserId, onClose }: SettingsModalP
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="relative flex flex-col w-full max-w-2xl max-h-[90vh] overflow-hidden rounded-3xl border border-[#FF7A45]/30 bg-gradient-to-b from-[#2D0D06] via-[#1E0904] to-[#0F0402] shadow-2xl shadow-black">
+      <div className="relative flex flex-col w-full max-w-2xl max-h-[90vh] overflow-hidden rounded-3xl border border-[#FF7A45]/40 bg-[#160603] shadow-2xl shadow-black">
         {/* HEADER MODAL */}
-        <div className="flex items-center justify-between border-b border-white/10 px-6 py-4">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#FF7A45]/15 border border-[#FF7A45]/40 text-[#FF7A45]">
+        <div className="flex items-center justify-between border-b border-white/15 px-6 py-4 bg-[#1E0904]">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#FF7A45]/20 border border-[#FF7A45]/50 text-[#FF7A45]">
               <Shield className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="font-serif text-xl font-bold tracking-wide text-[#FDF8F5]">
+              <h2 style={{ color: '#FFFFFF' }} className="font-serif text-xl font-bold tracking-wide">
                 Pengaturan Master
               </h2>
-              <p className="text-[11px] font-sans uppercase tracking-widest text-[#FF7A45]">
+              <p style={{ color: '#FF7A45' }} className="text-[11px] font-sans font-bold uppercase tracking-widest">
                 Manajemen Akun & Hak Akses
               </p>
             </div>
@@ -262,7 +251,8 @@ export default function SettingsModal({ currentUserId, onClose }: SettingsModalP
             type="button"
             onClick={onClose}
             aria-label="Tutup modal"
-            className="flex h-8 w-8 items-center justify-center rounded-full border border-white/20 text-[#FDF8F5] transition hover:bg-white/10"
+            style={{ color: '#FFFFFF', backgroundColor: 'rgba(255, 122, 69, 0.15)', borderColor: 'rgba(255, 122, 69, 0.4)' }}
+            className="flex h-8 w-8 items-center justify-center rounded-full border transition hover:bg-[#FF7A45]/30"
           >
             <X className="h-4 w-4" />
           </button>
@@ -271,20 +261,20 @@ export default function SettingsModal({ currentUserId, onClose }: SettingsModalP
         {/* NOTIFIKASI SUKSES / ERROR */}
         <div className="px-6 pt-3 space-y-2">
           {statusMessage && (
-            <div className="flex items-center gap-2 rounded-xl border border-green-500/40 bg-green-500/10 px-4 py-2.5 text-xs text-green-300">
+            <div className="flex items-center gap-2 rounded-xl border border-green-500/50 bg-green-500/15 px-4 py-2.5 text-xs font-semibold text-green-300">
               <Check className="h-4 w-4 shrink-0 text-green-400" />
               <span>{statusMessage}</span>
             </div>
           )}
           {errorMessage && (
-            <div className="flex items-center gap-2 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-2.5 text-xs text-red-300">
+            <div className="flex items-center gap-2 rounded-xl border border-red-500/50 bg-red-500/15 px-4 py-2.5 text-xs font-semibold text-red-300">
               <AlertCircle className="h-4 w-4 shrink-0 text-red-400" />
               <span>{errorMessage}</span>
             </div>
           )}
         </div>
 
-        {/* SEARCH BAR & INFO */}
+        {/* SEARCH BAR */}
         <div className="px-6 pt-3 pb-2 flex items-center justify-between gap-3">
           <div className="relative flex-1">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#FF7A45]" />
@@ -294,11 +284,11 @@ export default function SettingsModal({ currentUserId, onClose }: SettingsModalP
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               style={{
-                backgroundColor: '#120402',
-                borderColor: 'rgba(255, 122, 69, 0.3)',
-                color: '#FDF8F5',
+                backgroundColor: '#0F0402',
+                borderColor: 'rgba(255, 122, 69, 0.4)',
+                color: '#FFFFFF',
               }}
-              className="w-full rounded-2xl border py-2 pl-9 pr-4 text-xs font-medium outline-none focus:border-[#FF7A45]"
+              className="w-full rounded-2xl border py-2.5 pl-9 pr-4 text-xs font-medium outline-none focus:border-[#FF7A45]"
             />
           </div>
 
@@ -306,9 +296,10 @@ export default function SettingsModal({ currentUserId, onClose }: SettingsModalP
             type="button"
             onClick={() => void loadMembers()}
             title="Muat ulang daftar"
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl border border-white/15 bg-white/5 text-[#FDF8F5] transition hover:bg-white/10"
+            style={{ color: '#FF7A45', borderColor: 'rgba(255, 122, 69, 0.4)', backgroundColor: 'rgba(255, 122, 69, 0.1)' }}
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border transition hover:bg-[#FF7A45]/20"
           >
-            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin text-[#FF7A45]' : ''}`} />
+            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
           </button>
         </div>
 
@@ -316,12 +307,12 @@ export default function SettingsModal({ currentUserId, onClose }: SettingsModalP
         <div className="flex-1 overflow-y-auto px-6 py-3 space-y-3">
           {loading ? (
             <div className="py-12 text-center">
-              <p className="font-serif text-xs uppercase tracking-widest text-[#FF7A45] animate-pulse">
+              <p style={{ color: '#FF7A45' }} className="font-serif text-xs font-bold uppercase tracking-widest animate-pulse">
                 Memuat Akun Member...
               </p>
             </div>
           ) : filteredMembers.length === 0 ? (
-            <div className="py-12 text-center text-xs text-white/50">
+            <div style={{ color: 'rgba(253, 248, 245, 0.6)' }} className="py-12 text-center text-xs">
               Tidak ada akun member yang cocok.
             </div>
           ) : (
@@ -332,42 +323,50 @@ export default function SettingsModal({ currentUserId, onClose }: SettingsModalP
               return (
                 <div
                   key={member.id}
-                  className="rounded-2xl border border-white/10 bg-[#120402]/70 p-4 transition-all hover:border-white/20"
+                  style={{ backgroundColor: '#1F0803', borderColor: 'rgba(255, 122, 69, 0.35)' }}
+                  className="rounded-2xl border p-4 shadow-md transition-all hover:border-[#FF7A45]"
                 >
-                  {/* BARIS UTAMA: INFO USER & BADGE ROLE */}
+                  {/* BARIS UTAMA */}
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/15 bg-white/5 text-[#FDF8F5]">
-                        <User className="h-5 w-5 text-[#FF7A45]" />
+                      <div
+                        style={{ borderColor: 'rgba(255, 122, 69, 0.4)', backgroundColor: 'rgba(255, 122, 69, 0.15)' }}
+                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border text-[#FF7A45]"
+                      >
+                        <User className="h-5 w-5" />
                       </div>
 
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="font-serif text-sm font-bold text-white">
+                          <span style={{ color: '#FFFFFF' }} className="font-serif text-base font-extrabold tracking-wide">
                             @{member.username}
                           </span>
                           {isSelf && (
-                            <span className="rounded-full bg-white/10 px-2 py-0.5 text-[9px] uppercase tracking-wider text-[#FF7A45] font-semibold">
-                              (Anda)
+                            <span
+                              style={{ backgroundColor: '#FF7A45', color: '#0F0402' }}
+                              className="rounded-full px-2 py-0.5 text-[9px] uppercase tracking-wider font-extrabold shadow"
+                            >
+                              ANDA
                             </span>
                           )}
                         </div>
-                        <p className="text-[10px] text-white/60">
-                          {member.display_name || member.name || 'Member Club'}
+                        <p style={{ color: 'rgba(253, 248, 245, 0.7)' }} className="text-xs font-medium">
+                          {member.display_name || member.name || 'Member Klub'}
                         </p>
                       </div>
                     </div>
 
-                    {/* STATUS ROLE & TOMBOL UBAH ROLE */}
+                    {/* STATUS ROLE & TOMBOL GANTI PERAN */}
                     <div className="flex items-center gap-2">
                       <span
-                        className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                        style={
                           isMaster
-                            ? 'bg-[#FF7A45]/20 border border-[#FF7A45]/50 text-[#FF7A45]'
-                            : 'bg-white/10 border border-white/15 text-white/70'
-                        }`}
+                            ? { color: '#FF7A45', backgroundColor: 'rgba(255, 122, 69, 0.2)', borderColor: '#FF7A45' }
+                            : { color: '#FDF8F5', backgroundColor: 'rgba(255, 255, 255, 0.12)', borderColor: 'rgba(255, 255, 255, 0.3)' }
+                        }
+                        className="inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-wider shadow-sm"
                       >
-                        {isMaster ? <Shield className="h-3 w-3" /> : null}
+                        {isMaster && <Shield className="h-3.5 w-3.5" />}
                         {isMaster ? 'Master Admin' : 'Member'}
                       </span>
 
@@ -375,7 +374,12 @@ export default function SettingsModal({ currentUserId, onClose }: SettingsModalP
                         <button
                           type="button"
                           onClick={() => handleToggleRole(member)}
-                          className="rounded-xl border border-white/20 bg-white/5 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white hover:bg-[#FF7A45] hover:text-[#0F0402] transition-colors"
+                          style={
+                            isMaster
+                              ? { color: '#FDF8F5', backgroundColor: 'rgba(255, 255, 255, 0.1)', borderColor: 'rgba(255, 255, 255, 0.3)' }
+                              : { background: 'linear-gradient(to right, #B84013, #FF7A45)', color: '#FFFFFF', borderColor: '#FF7A45' }
+                          }
+                          className="border px-3.5 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider shadow-md hover:brightness-110 active:scale-95 transition-all"
                         >
                           {isMaster ? 'Turunkan ke Member' : 'Jadikan Master 👑'}
                         </button>
@@ -383,7 +387,7 @@ export default function SettingsModal({ currentUserId, onClose }: SettingsModalP
                     </div>
                   </div>
 
-                  {/* FORM EDIT USERNAME (JIKA DIKLIK) */}
+                  {/* FORM EDIT USERNAME */}
                   {editingUsernameId === member.id && (
                     <div className="mt-3 pt-3 border-t border-white/10 flex flex-wrap items-center gap-2">
                       <input
@@ -391,12 +395,14 @@ export default function SettingsModal({ currentUserId, onClose }: SettingsModalP
                         placeholder="Username baru..."
                         value={newUsernameInput}
                         onChange={(e) => setNewUsernameInput(e.target.value)}
-                        className="rounded-xl border border-[#FF7A45]/40 bg-[#0F0402] px-3 py-1.5 text-xs text-white outline-none focus:border-[#FF7A45]"
+                        style={{ backgroundColor: '#0F0402', color: '#FFFFFF', borderColor: '#FF7A45' }}
+                        className="rounded-xl border px-3 py-1.5 text-xs outline-none font-semibold"
                       />
                       <button
                         type="button"
                         onClick={() => handleSaveUsername(member.id)}
-                        className="rounded-xl bg-[#FF7A45] px-3 py-1.5 text-xs font-bold uppercase text-[#0F0402] hover:brightness-110"
+                        style={{ backgroundColor: '#FF7A45', color: '#0F0402' }}
+                        className="rounded-xl px-3 py-1.5 text-xs font-bold uppercase hover:brightness-110 shadow"
                       >
                         Simpan
                       </button>
@@ -406,14 +412,15 @@ export default function SettingsModal({ currentUserId, onClose }: SettingsModalP
                           setEditingUsernameId(null);
                           setNewUsernameInput('');
                         }}
-                        className="rounded-xl border border-white/20 px-3 py-1.5 text-xs text-white/70 hover:text-white"
+                        style={{ color: '#FDF8F5', borderColor: 'rgba(255, 255, 255, 0.3)' }}
+                        className="rounded-xl border px-3 py-1.5 text-xs hover:bg-white/10"
                       >
                         Batal
                       </button>
                     </div>
                   )}
 
-                  {/* FORM RESET PASSWORD (JIKA DIKLIK) */}
+                  {/* FORM RESET PASSWORD */}
                   {resettingPasswordId === member.id && (
                     <div className="mt-3 pt-3 border-t border-white/10 flex flex-wrap items-center gap-2">
                       <input
@@ -421,14 +428,16 @@ export default function SettingsModal({ currentUserId, onClose }: SettingsModalP
                         placeholder="Password baru (min. 6 karakter)..."
                         value={newPasswordInput}
                         onChange={(e) => setNewPasswordInput(e.target.value)}
-                        className="rounded-xl border border-[#FF7A45]/40 bg-[#0F0402] px-3 py-1.5 text-xs text-white outline-none focus:border-[#FF7A45]"
+                        style={{ backgroundColor: '#0F0402', color: '#FFFFFF', borderColor: '#FF7A45' }}
+                        className="rounded-xl border px-3 py-1.5 text-xs outline-none font-semibold"
                       />
                       <button
                         type="button"
                         onClick={() => handleSavePassword(member.id, member.username)}
-                        className="rounded-xl bg-[#FF7A45] px-3 py-1.5 text-xs font-bold uppercase text-[#0F0402] hover:brightness-110"
+                        style={{ backgroundColor: '#FF7A45', color: '#0F0402' }}
+                        className="rounded-xl px-3 py-1.5 text-xs font-bold uppercase hover:brightness-110 shadow"
                       >
-                        Perbarui Password
+                        Simpan Password
                       </button>
                       <button
                         type="button"
@@ -436,15 +445,16 @@ export default function SettingsModal({ currentUserId, onClose }: SettingsModalP
                           setResettingPasswordId(null);
                           setNewPasswordInput('');
                         }}
-                        className="rounded-xl border border-white/20 px-3 py-1.5 text-xs text-white/70 hover:text-white"
+                        style={{ color: '#FDF8F5', borderColor: 'rgba(255, 255, 255, 0.3)' }}
+                        className="rounded-xl border px-3 py-1.5 text-xs hover:bg-white/10"
                       >
                         Batal
                       </button>
                     </div>
                   )}
 
-                  {/* TOMBOL AKSI CEPAT (GANTI USERNAME, GANTI PASSWORD, HAPUS AKUN) */}
-                  <div className="mt-3 pt-2.5 border-t border-white/5 flex flex-wrap items-center justify-end gap-2">
+                  {/* TOMBOL AKSI CEPAT */}
+                  <div className="mt-3 pt-3 border-t border-white/10 flex flex-wrap items-center justify-end gap-2">
                     <button
                       type="button"
                       onClick={() => {
@@ -452,9 +462,10 @@ export default function SettingsModal({ currentUserId, onClose }: SettingsModalP
                         setNewUsernameInput(member.username);
                         setResettingPasswordId(null);
                       }}
-                      className="inline-flex items-center gap-1 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] text-white/80 hover:bg-white/10 hover:text-white transition"
+                      style={{ color: '#FDF8F5', backgroundColor: 'rgba(255, 122, 69, 0.15)', borderColor: 'rgba(255, 122, 69, 0.35)' }}
+                      className="border flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold hover:bg-[#FF7A45]/30 transition-all"
                     >
-                      <Edit2 className="h-3 w-3 text-[#FF7A45]" />
+                      <Edit2 className="h-3.5 w-3.5 text-[#FF7A45]" />
                       <span>Ubah Username</span>
                     </button>
 
@@ -465,9 +476,10 @@ export default function SettingsModal({ currentUserId, onClose }: SettingsModalP
                         setNewPasswordInput('');
                         setEditingUsernameId(null);
                       }}
-                      className="inline-flex items-center gap-1 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] text-white/80 hover:bg-white/10 hover:text-white transition"
+                      style={{ color: '#FDF8F5', backgroundColor: 'rgba(255, 122, 69, 0.15)', borderColor: 'rgba(255, 122, 69, 0.35)' }}
+                      className="border flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold hover:bg-[#FF7A45]/30 transition-all"
                     >
-                      <Key className="h-3 w-3 text-[#FF7A45]" />
+                      <Key className="h-3.5 w-3.5 text-[#FF7A45]" />
                       <span>Ubah Password</span>
                     </button>
 
@@ -475,10 +487,10 @@ export default function SettingsModal({ currentUserId, onClose }: SettingsModalP
                       <button
                         type="button"
                         onClick={() => handleDeleteMember(member)}
-                        title="Hapus Akun Permanen"
-                        className="inline-flex items-center gap-1 rounded-lg border border-red-500/20 bg-red-500/10 px-2.5 py-1 text-[11px] text-red-400 hover:bg-red-500/20 transition"
+                        style={{ color: '#FCA5A5', backgroundColor: 'rgba(239, 68, 68, 0.15)', borderColor: 'rgba(239, 68, 68, 0.4)' }}
+                        className="border flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold hover:bg-red-500/30 transition-all"
                       >
-                        <Trash2 className="h-3 w-3" />
+                        <Trash2 className="h-3.5 w-3.5 text-red-400" />
                         <span>Hapus</span>
                       </button>
                     )}
@@ -489,14 +501,19 @@ export default function SettingsModal({ currentUserId, onClose }: SettingsModalP
           )}
         </div>
 
-        {/* FOOTER MODAL */}
-        <div className="border-t border-white/10 px-6 py-3 text-right">
+        {/* FOOTER MODAL (TOMBOL TUTUP DENGAN KONTRAS TINGGI) */}
+        <div className="border-t border-white/15 px-6 py-4 text-right bg-[#1E0904]">
           <button
             type="button"
             onClick={onClose}
-            className="rounded-xl border border-white/20 bg-white/5 px-5 py-2 text-xs font-bold uppercase tracking-wider text-white hover:bg-white/10"
+            style={{
+              color: '#FFFFFF',
+              backgroundColor: 'rgba(255, 122, 69, 0.25)',
+              borderColor: '#FF7A45',
+            }}
+            className="border-2 px-7 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all hover:bg-[#FF7A45] hover:text-[#0F0402] shadow-lg active:scale-95"
           >
-            Tutup
+            TUTUP
           </button>
         </div>
       </div>
