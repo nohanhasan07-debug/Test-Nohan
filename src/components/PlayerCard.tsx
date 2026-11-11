@@ -10,6 +10,7 @@ interface PlayerCardProps {
   onEditPhoto?: () => void;
   onClick?: () => void;
   isAdmin?: boolean;
+  isOwner?: boolean; // True jika kartu ini milik akun yang sedang login
   className?: string;
 }
 
@@ -23,6 +24,7 @@ export const PlayerCard = forwardRef<HTMLDivElement, PlayerCardProps>(
       onEditPhoto,
       onClick,
       isAdmin = false,
+      isOwner = false,
       className = '',
     },
     ref
@@ -38,6 +40,8 @@ export const PlayerCard = forwardRef<HTMLDivElement, PlayerCardProps>(
         } ${
           isPOTM
             ? 'shadow-[0_0_35px_rgba(255,122,69,0.45)] border-[#FF7A45]'
+            : isOwner
+            ? 'border-[#FF7A45]/50 shadow-[0_0_20px_rgba(255,122,69,0.2)]'
             : 'hover:border-[#FF7A45]/60 hover:shadow-[0_0_25px_rgba(255,122,69,0.25)]'
         } ${className}`}
       >
@@ -70,7 +74,7 @@ export const PlayerCard = forwardRef<HTMLDivElement, PlayerCardProps>(
         <div className="absolute top-0 inset-x-0 h-20 bg-gradient-to-b from-black/85 via-black/40 to-transparent pointer-events-none" />
         <div className="absolute bottom-0 inset-x-0 h-[50%] bg-gradient-to-t from-[#0F0402] via-[#0F0402]/95 to-transparent pointer-events-none" />
 
-        {/* 3. HEADER OVERLAY: LOGO & POTM BADGE */}
+        {/* 3. HEADER OVERLAY: LOGO & BADGE */}
         <div className="absolute top-3 sm:top-4 inset-x-3 sm:inset-x-4 flex items-center justify-between z-10">
           <div className="flex items-center gap-1.5 bg-black/70 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/15 shadow-md">
             <div className="w-2 h-2 rounded-full bg-[#FF7A45] animate-pulse" />
@@ -78,18 +82,26 @@ export const PlayerCard = forwardRef<HTMLDivElement, PlayerCardProps>(
             <span style={{ color: '#FF7A45' }} className="text-[8px] font-mono tracking-widest uppercase font-bold">CLUB</span>
           </div>
 
-          {isPOTM && (
-            <div className="flex items-center gap-1 bg-gradient-to-r from-amber-500 via-[#FF7A45] to-[#B84013] text-white px-2.5 py-1 rounded-full shadow-lg border border-amber-300/40 animate-bounce duration-1000">
-              <span className="text-xs">👑</span>
-              <span className="text-[9px] sm:text-[10px] font-black tracking-widest uppercase text-white drop-shadow">
-                POTM
+          <div className="flex items-center gap-1.5">
+            {isOwner && !isPOTM && (
+              <span style={{ backgroundColor: '#FF7A45', color: '#0F0402' }} className="text-[8px] sm:text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full shadow">
+                YOU
               </span>
-            </div>
-          )}
+            )}
+
+            {isPOTM && (
+              <div className="flex items-center gap-1 bg-gradient-to-r from-amber-500 via-[#FF7A45] to-[#B84013] text-white px-2.5 py-1 rounded-full shadow-lg border border-amber-300/40 animate-bounce duration-1000">
+                <span className="text-xs">👑</span>
+                <span className="text-[9px] sm:text-[10px] font-black tracking-widest uppercase text-white drop-shadow">
+                  POTM
+                </span>
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* 4. TOMBOL GANTI FOTO KHUSUS ADMIN (DIPERTENANG & SANGAT JELAS) */}
-        {isAdmin && onEditPhoto && (
+        {/* 4. TOMBOL UPLOAD FOTO (BISA DIAKSES OLEH PEMILIK AKUN & MASTER ADMIN) */}
+        {(isAdmin || isOwner) && onEditPhoto && (
           <button
             type="button"
             onClick={(e) => {
@@ -97,32 +109,28 @@ export const PlayerCard = forwardRef<HTMLDivElement, PlayerCardProps>(
               onEditPhoto();
             }}
             style={{
-              backgroundColor: 'rgba(15, 4, 2, 0.85)',
+              backgroundColor: isOwner ? '#FF7A45' : 'rgba(15, 4, 2, 0.85)',
               borderColor: '#FF7A45',
-              color: '#FF7A45',
+              color: isOwner ? '#0F0402' : '#FF7A45',
             }}
-            className="absolute top-12 right-3 sm:right-4 z-20 flex h-8 w-8 items-center justify-center rounded-full border shadow-xl transition-all hover:scale-110 hover:bg-[#FF7A45] hover:text-[#0F0402] active:scale-95"
-            title="Ubah Foto Pemain"
+            className="absolute top-12 right-3 sm:right-4 z-20 flex h-8 w-8 items-center justify-center rounded-full border shadow-xl transition-all hover:scale-110 active:scale-95"
+            title={isOwner ? 'Ganti Foto Profil Anda' : 'Ubah Foto Pemain'}
           >
             <Camera className="h-4 w-4" />
           </button>
         )}
 
-        {/* 5. PANEL BAWAH: NAMA & STATISTIK KONTRAS TINGGI */}
+        {/* 5. PANEL BAWAH: NAMA & STATISTIK */}
         <div className="absolute bottom-3 inset-x-3 sm:inset-x-3.5 z-10 flex flex-col">
-          {/* NAMA PEMAIN */}
           <div className="mb-1">
             <h3 style={{ color: '#FFFFFF' }} className="text-base sm:text-lg md:text-xl font-black uppercase tracking-wider truncate drop-shadow-md">
               {player.name}
             </h3>
           </div>
 
-          {/* DIVIDER LINE */}
           <div className="h-[1.5px] w-full bg-gradient-to-r from-[#FF7A45] via-white/30 to-transparent mb-2" />
 
-          {/* BOX STATISTIK (ANGKA MATCHES & WINRATE TERANG) */}
           <div className="grid grid-cols-2 gap-2">
-            {/* MATCHES */}
             <div className="flex flex-col items-center justify-center bg-[#1A0804]/90 backdrop-blur-md rounded-2xl py-2 border border-white/10 shadow-inner">
               <span style={{ color: '#FFFFFF' }} className="text-base sm:text-lg font-black leading-tight">
                 {matchesCount}
@@ -132,7 +140,6 @@ export const PlayerCard = forwardRef<HTMLDivElement, PlayerCardProps>(
               </span>
             </div>
 
-            {/* WINRATE */}
             <div className="flex flex-col items-center justify-center bg-[#1A0804]/90 backdrop-blur-md rounded-2xl py-2 border border-white/10 shadow-inner">
               <span style={{ color: '#FF7A45' }} className="text-base sm:text-lg font-black leading-tight">
                 {formattedWinRate}%
@@ -143,7 +150,6 @@ export const PlayerCard = forwardRef<HTMLDivElement, PlayerCardProps>(
             </div>
           </div>
 
-          {/* SOCIAL FOOTER */}
           <div className="text-center mt-2">
             <span style={{ color: 'rgba(255, 255, 255, 0.4)' }} className="text-[8px] sm:text-[9px] tracking-[0.25em] uppercase font-mono font-medium">
               @patctennis
