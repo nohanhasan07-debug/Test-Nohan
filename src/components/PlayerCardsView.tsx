@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import html2canvas from 'html2canvas';
-import { X, Sparkles, Trophy } from 'lucide-react';
+import { X } from 'lucide-react';
 import { Player, Match } from '../types/playerCard';
 import { PlayerCard } from './PlayerCard';
 import { AdminPhotoUploadModal } from './AdminPhotoUploadModal';
@@ -11,6 +11,8 @@ interface PlayerCardsViewProps {
   matches: Match[];
   currentUserEmail?: string;
   currentUserRole?: string;
+  currentUserId?: string;
+  currentUsername?: string;
 }
 
 export const PlayerCardsView: React.FC<PlayerCardsViewProps> = ({
@@ -18,6 +20,8 @@ export const PlayerCardsView: React.FC<PlayerCardsViewProps> = ({
   matches = [],
   currentUserEmail = '',
   currentUserRole = 'member',
+  currentUserId = '',
+  currentUsername = '',
 }) => {
   const [selectedPlayerForEdit, setSelectedPlayerForEdit] = useState<Player | null>(null);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
@@ -25,7 +29,6 @@ export const PlayerCardsView: React.FC<PlayerCardsViewProps> = ({
   const [matchList, setMatchList] = useState<Match[]>(matches);
   const [isGeneratingBanner, setIsGeneratingBanner] = useState(false);
 
-  // State untuk fokus/zoom-in card yang dipencet
   const [focusedPlayer, setFocusedPlayer] = useState<{
     player: Player;
     totalMatches: number;
@@ -37,7 +40,6 @@ export const PlayerCardsView: React.FC<PlayerCardsViewProps> = ({
 
   const storyExportRef = useRef<HTMLDivElement>(null);
 
-  // Escape key untuk keluar dari mode zoom-in
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setFocusedPlayer(null);
@@ -46,7 +48,6 @@ export const PlayerCardsView: React.FC<PlayerCardsViewProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Sinkronisasi data real-time
   useEffect(() => {
     async function refreshData() {
       try {
@@ -67,6 +68,13 @@ export const PlayerCardsView: React.FC<PlayerCardsViewProps> = ({
     currentUserRole === 'master' ||
     currentUserRole === 'admin' ||
     currentUserEmail.toLowerCase().includes('admin');
+
+  // Helper untuk cek apakah suatu kartu adalah milik akun yang sedang login
+  const isCurrentPlayer = (p: Player) => {
+    if (currentUserId && (p.id === currentUserId || (p as any).profileId === currentUserId)) return true;
+    if (currentUsername && p.name.toLowerCase() === currentUsername.toLowerCase()) return true;
+    return false;
+  };
 
   const currentMonthName = useMemo(() => {
     return new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric' }).format(new Date());
@@ -148,7 +156,7 @@ export const PlayerCardsView: React.FC<PlayerCardsViewProps> = ({
   const potmCandidate =
     rankedMonthlyPlayers.find((p) => p.totalMatches > 0) || rankedMonthlyPlayers[0] || null;
 
-  // 3. GENERATE IG STORY BANNER
+  // 3. GENERATE IG STORY
   const handleGenerateStoryBanner = async () => {
     if (!storyExportRef.current || !potmCandidate) return;
 
@@ -199,25 +207,13 @@ export const PlayerCardsView: React.FC<PlayerCardsViewProps> = ({
 
   return (
     <div className="relative min-h-screen bg-gradient-to-b from-[#B84013] via-[#4A1504] to-[#0F0402] text-[#FDF8F5] px-4 py-8 md:py-12 overflow-hidden">
-      {/* ======================================================== */}
-      {/* ANIMASI LIVE API (FLOATING EMBERS & FLAME GLOW) */}
-      {/* ======================================================== */}
+      {/* ANIMASI LIVE API */}
       <style>{`
         @keyframes riseEmber {
-          0% {
-            transform: translateY(105vh) translateX(0) scale(1);
-            opacity: 0;
-          }
-          15% {
-            opacity: 0.9;
-          }
-          85% {
-            opacity: 0.6;
-          }
-          100% {
-            transform: translateY(-10vh) translateX(var(--drift)) scale(0.2);
-            opacity: 0;
-          }
+          0% { transform: translateY(105vh) translateX(0) scale(1); opacity: 0; }
+          15% { opacity: 0.9; }
+          85% { opacity: 0.6; }
+          100% { transform: translateY(-10vh) translateX(var(--drift)) scale(0.2); opacity: 0; }
         }
         @keyframes flameFlicker {
           0%, 100% { opacity: 0.25; transform: scale(1); }
@@ -225,7 +221,6 @@ export const PlayerCardsView: React.FC<PlayerCardsViewProps> = ({
         }
       `}</style>
 
-      {/* Kobaran Api Melayang dari Bawah */}
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
         {embers.map((e) => (
           <span
@@ -247,13 +242,10 @@ export const PlayerCardsView: React.FC<PlayerCardsViewProps> = ({
         ))}
       </div>
 
-      {/* Pendar Hangat Api Dasar */}
       <div className="pointer-events-none fixed inset-x-0 bottom-0 h-96 bg-gradient-to-t from-[#FF4500]/25 via-[#B84013]/15 to-transparent blur-3xl animate-[flameFlicker_4s_ease-in-out_infinite]" />
       <div className="absolute top-10 left-1/2 -translate-x-1/2 w-96 h-96 bg-[#FF5500]/20 rounded-full blur-[140px] pointer-events-none" />
 
-      {/* ======================================================== */}
-      {/* KONTEN UTAMA */}
-      {/* ======================================================== */}
+      {/* KONTEN */}
       <div className={`max-w-6xl mx-auto space-y-12 relative z-10 transition-all duration-300 ${focusedPlayer ? 'filter blur-sm pointer-events-none' : ''}`}>
         {/* HEADER */}
         <div className="text-center space-y-2">
@@ -267,11 +259,11 @@ export const PlayerCardsView: React.FC<PlayerCardsViewProps> = ({
             PLAYER <span style={{ color: '#FF7A45' }}>CARDS</span>
           </h1>
           <p style={{ color: 'rgba(253, 248, 245, 0.75)' }} className="text-xs sm:text-sm max-w-md mx-auto">
-            Statistik performa bulanan dan kartu resmi anggota Panic at the Court. Tekan kartu pemain untuk melihat detail.
+            Pasang foto profilmu di kartu pemain. Tekan kartu pemain untuk melihat detail statistik.
           </p>
         </div>
 
-        {/* CARD PLAYER OF THE MONTH (POTM) */}
+        {/* CARD POTM */}
         {potmCandidate && (
           <div className="relative flex flex-col items-center">
             <div className="absolute -inset-4 bg-[#FF5500]/30 rounded-full blur-[100px] pointer-events-none animate-pulse" />
@@ -310,6 +302,7 @@ export const PlayerCardsView: React.FC<PlayerCardsViewProps> = ({
                 winRate={potmCandidate.winRate}
                 isPOTM={true}
                 isAdmin={isMasterAdmin}
+                isOwner={isCurrentPlayer(potmCandidate.player)}
                 onClick={() =>
                   setFocusedPlayer({
                     player: potmCandidate.player,
@@ -345,7 +338,7 @@ export const PlayerCardsView: React.FC<PlayerCardsViewProps> = ({
                 ALL PATC MEMBERS
               </h2>
               <p style={{ color: '#FF7A45' }} className="text-xs font-bold mt-0.5">
-                Total {playerList.length} Pemain Terdaftar (Klik kartu untuk fokus)
+                Total {playerList.length} Pemain Terdaftar
               </p>
             </div>
             {isMasterAdmin && (
@@ -358,6 +351,8 @@ export const PlayerCardsView: React.FC<PlayerCardsViewProps> = ({
           <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
             {rankedMonthlyPlayers.map(({ player, totalMatches, wins, losses, winRate }) => {
               const isPOTM = potmCandidate?.player.id === player.id && totalMatches > 0;
+              const isOwner = isCurrentPlayer(player);
+
               return (
                 <PlayerCard
                   key={player.id}
@@ -366,6 +361,7 @@ export const PlayerCardsView: React.FC<PlayerCardsViewProps> = ({
                   winRate={winRate}
                   isPOTM={isPOTM}
                   isAdmin={isMasterAdmin}
+                  isOwner={isOwner}
                   onClick={() =>
                     setFocusedPlayer({
                       player,
@@ -387,9 +383,7 @@ export const PlayerCardsView: React.FC<PlayerCardsViewProps> = ({
         </div>
       </div>
 
-      {/* ======================================================== */}
-      {/* MODAL ZOOM-IN FOCUS CARD (KETIKA KARTU DIKLIK) */}
-      {/* ======================================================== */}
+      {/* MODAL ZOOM-IN FOCUS CARD */}
       {focusedPlayer && (
         <div
           className="fixed inset-0 z-50 flex flex-col items-center justify-center p-4 bg-black/85 backdrop-blur-xl animate-in fade-in duration-200"
@@ -399,10 +393,8 @@ export const PlayerCardsView: React.FC<PlayerCardsViewProps> = ({
             className="relative w-full max-w-[320px] sm:max-w-[360px] flex flex-col items-center"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Ambient Flame Glow Fokus */}
             <div className="absolute -inset-8 bg-[#FF5500]/35 rounded-full blur-[90px] animate-pulse pointer-events-none" />
 
-            {/* Tombol Tutup (X) */}
             <button
               type="button"
               onClick={() => setFocusedPlayer(null)}
@@ -416,7 +408,6 @@ export const PlayerCardsView: React.FC<PlayerCardsViewProps> = ({
               <X className="h-4 w-4" />
             </button>
 
-            {/* Kartu Zoom-in */}
             <div className="w-full transform scale-105 transition-all duration-300 shadow-[0_0_60px_rgba(255,100,0,0.5)] rounded-3xl overflow-hidden border-2 border-[#FF7A45]">
               <PlayerCard
                 player={focusedPlayer.player}
@@ -424,6 +415,7 @@ export const PlayerCardsView: React.FC<PlayerCardsViewProps> = ({
                 winRate={focusedPlayer.winRate}
                 isPOTM={focusedPlayer.isPOTM}
                 isAdmin={isMasterAdmin}
+                isOwner={isCurrentPlayer(focusedPlayer.player)}
                 onEditPhoto={() => {
                   setSelectedPlayerForEdit(focusedPlayer.player);
                   setIsUploadModalOpen(true);
@@ -431,7 +423,6 @@ export const PlayerCardsView: React.FC<PlayerCardsViewProps> = ({
               />
             </div>
 
-            {/* Pill Statistik Detail */}
             <div className="mt-5 flex items-center justify-center gap-4 bg-black/80 border border-white/20 px-6 py-2.5 rounded-2xl shadow-2xl backdrop-blur-md">
               <div className="text-center">
                 <span className="block text-[10px] font-bold uppercase tracking-wider text-[#4ADE80]">Menang</span>
