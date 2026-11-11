@@ -26,7 +26,7 @@ interface SidebarProps {
   onChangeView: (view: AppView) => void;
   onChangeTab: (tab: LeaderboardTab) => void;
   onOpenSettings: () => void;
-  onOpenLogMatch?: () => void; // Tombol Log Match di Sidebar
+  onOpenLogMatch?: () => void;
   onSignOut: () => void;
   mobileOpen: boolean;
   onCloseMobile: () => void;
@@ -94,15 +94,15 @@ export default function Sidebar({
           mobileOpen ? 'translate-x-0' : '-translate-x-[125%] lg:translate-x-0'
         }`}
       >
-        {/* HEADER BRANDING: LOGO PATC */}
+        {/* HEADER BRANDING */}
         <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-5">
           <div className="flex items-center gap-3">
             <ClubLogo className="h-11 w-11 shrink-0 rounded-full border border-[#FF7A45]/40 p-0.5 shadow-md" />
             <div className="flex flex-col">
-              <span className="font-serif text-2xl font-bold uppercase leading-none tracking-widest text-[#FDF8F5]">
+              <span style={{ color: '#FFFFFF' }} className="font-serif text-2xl font-black uppercase leading-none tracking-widest">
                 PATC
               </span>
-              <span className="mt-1 font-sans text-[10px] font-semibold uppercase tracking-[0.25em] text-[#FF7A45]">
+              <span className="mt-1 font-sans text-[10px] font-bold uppercase tracking-[0.25em] text-[#FF7A45]">
                 Tennis Club
               </span>
             </div>
@@ -112,13 +112,14 @@ export default function Sidebar({
             type="button"
             onClick={onCloseMobile}
             aria-label="Tutup menu"
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/20 text-[#FDF8F5] transition hover:bg-white/10 lg:hidden"
+            style={{ color: '#FFFFFF', borderColor: 'rgba(255, 255, 255, 0.2)' }}
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border transition hover:bg-white/10 lg:hidden"
           >
             <X className="h-4 w-4" aria-hidden="true" />
           </button>
         </div>
 
-        {/* TOMBOL LOG MATCH PERMANEN DI SIDEBAR */}
+        {/* TOMBOL LOG MATCH */}
         {onOpenLogMatch && (
           <div className="pt-4 pb-2">
             <button
@@ -152,10 +153,15 @@ export default function Sidebar({
                         if (item.tab) onChangeTab(item.tab);
                       })
                     }
+                    style={
+                      active
+                        ? { color: '#FFFFFF' }
+                        : { color: '#FDF8F5' }
+                    }
                     className={`flex w-full items-center gap-3 px-3.5 py-2.5 text-left text-xs transition-all ${
                       active
-                        ? 'rounded-2xl border border-white/25 bg-gradient-to-r from-[#B84013] to-[#FF7A45] text-white font-semibold shadow-lg shadow-[#B84013]/40 drop-shadow'
-                        : 'rounded-2xl text-[#FDF8F5] font-medium hover:bg-white/10 hover:text-white'
+                        ? 'rounded-2xl border border-white/25 bg-gradient-to-r from-[#B84013] to-[#FF7A45] font-semibold shadow-lg shadow-[#B84013]/40 drop-shadow'
+                        : 'rounded-2xl font-medium hover:bg-white/10 hover:text-white'
                     }`}
                   >
                     <Icon
@@ -169,7 +175,7 @@ export default function Sidebar({
             })}
           </ul>
 
-          {/* KATEGORI ADMIN (Persetujuan & Pengaturan Master) */}
+          {/* ADMIN PANEL */}
           {isMaster && (
             <>
               <p className="mt-6 px-3 pb-2 text-[11px] font-bold uppercase tracking-widest text-[#FF7A45]">
@@ -180,10 +186,15 @@ export default function Sidebar({
                   <button
                     type="button"
                     onClick={() => choose(() => onChangeView('approvals'))}
+                    style={
+                      view === 'approvals'
+                        ? { color: '#FFFFFF' }
+                        : { color: '#FDF8F5' }
+                    }
                     className={`flex w-full items-center gap-3 px-3.5 py-2.5 text-left text-xs transition-all ${
                       view === 'approvals'
-                        ? 'rounded-2xl border border-white/25 bg-gradient-to-r from-[#B84013] to-[#FF7A45] text-white font-semibold shadow-lg shadow-[#B84013]/40 drop-shadow'
-                        : 'rounded-2xl text-[#FDF8F5] font-medium hover:bg-white/10 hover:text-white'
+                        ? 'rounded-2xl border border-white/25 bg-gradient-to-r from-[#B84013] to-[#FF7A45] font-semibold shadow-lg shadow-[#B84013]/40 drop-shadow'
+                        : 'rounded-2xl font-medium hover:bg-white/10 hover:text-white'
                     }`}
                   >
                     <ClipboardCheck
@@ -202,7 +213,8 @@ export default function Sidebar({
                   <button
                     type="button"
                     onClick={() => choose(onOpenSettings)}
-                    className="flex w-full items-center gap-3 rounded-2xl px-3.5 py-2.5 text-left text-xs text-[#FDF8F5] font-medium transition-all hover:bg-white/10 hover:text-white"
+                    style={{ color: '#FDF8F5' }}
+                    className="flex w-full items-center gap-3 rounded-2xl px-3.5 py-2.5 text-left text-xs font-medium transition-all hover:bg-white/10 hover:text-white"
                   >
                     <Settings className="h-4 w-4 shrink-0 text-[#FF7A45]" aria-hidden="true" />
                     <span className="truncate">Pengaturan Master</span>
@@ -213,17 +225,23 @@ export default function Sidebar({
           )}
         </nav>
 
-        {/* FOOTER: PROFIL USER & LOGOUT */}
+        {/* FOOTER USER CARD (DIPERJELAS KONTRASNYA) */}
         <div className="border-t border-white/10 pt-4">
-          <div className="flex items-center gap-3 rounded-2xl border border-white/15 bg-white/5 p-3 backdrop-blur-md">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#FF7A45]/40 bg-[#FF7A45]/15 text-[#FF7A45]">
+          <div
+            style={{ borderColor: 'rgba(255, 122, 69, 0.4)', backgroundColor: 'rgba(255, 122, 69, 0.1)' }}
+            className="flex items-center gap-3 rounded-2xl border p-3 backdrop-blur-md"
+          >
+            <div
+              style={{ borderColor: 'rgba(255, 122, 69, 0.6)', backgroundColor: 'rgba(255, 122, 69, 0.25)' }}
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border text-[#FF7A45]"
+            >
               <User className="h-4 w-4" aria-hidden="true" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="truncate font-sans text-xs text-white font-medium">
+              <p style={{ color: '#FFFFFF' }} className="truncate font-sans text-xs font-bold leading-tight">
                 @{username}
               </p>
-              <p className="text-[10px] uppercase tracking-wider text-white/60 font-sans">
+              <p style={{ color: '#FF7A45' }} className="text-[10px] uppercase tracking-wider font-extrabold mt-0.5">
                 {isMaster ? 'Master Admin 👑' : 'Member'}
               </p>
             </div>
@@ -232,7 +250,7 @@ export default function Sidebar({
           <button
             type="button"
             onClick={() => choose(onSignOut)}
-            className="mt-3 flex w-full items-center gap-2 px-2 text-xs text-red-400 font-medium transition-colors hover:text-red-300"
+            className="mt-3 flex w-full items-center gap-2 px-2 text-xs text-red-400 font-semibold transition-colors hover:text-red-300"
           >
             <LogOut className="h-4 w-4 shrink-0" aria-hidden="true" />
             <span>Keluar Akun</span>
