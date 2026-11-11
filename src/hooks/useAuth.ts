@@ -57,7 +57,12 @@ export function useAuth() {
         .eq('password', password)
         .maybeSingle();
 
-      if (error || !data) {
+      if (error) {
+        console.error('Error saat login:', error);
+        return `Gagal login: ${error.message}`;
+      }
+
+      if (!data) {
         return 'Username atau password salah.';
       }
 
@@ -73,8 +78,9 @@ export function useAuth() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
       setState({ status: 'signed-in', profile });
       return null;
-    } catch {
-      return 'Terjadi kesalahan sistem saat login.';
+    } catch (err: any) {
+      console.error('Crash saat login:', err);
+      return err?.message || 'Terjadi kesalahan sistem saat login.';
     }
   };
 
@@ -82,11 +88,17 @@ export function useAuth() {
     try {
       const trimmedUsername = username.trim();
 
-      const { data: existing } = await supabase
+      // 1. Cek apakah username sudah dipakai
+      const { data: existing, error: checkError } = await supabase
         .from('profiles')
         .select('id')
         .ilike('username', trimmedUsername)
         .maybeSingle();
+
+      if (checkError) {
+        console.error('Error cek username:', checkError);
+        return `Gagal cek username: ${checkError.message}`;
+      }
 
       if (existing) {
         return 'Username sudah dipakai. Coba username lain.';
@@ -94,20 +106,42 @@ export function useAuth() {
 
       const isMasterUser = trimmedUsername.toLowerCase() === 'nohan';
 
+      // Buat UUID otomatis agar Supabase tidak menolak karena kolom ID kosong
+      const newUserId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : undefined;
+
+      const newProfileData: Record<string, any> = {
+        username: trimmedUsername,
+        password: password,
+        display_name: trimmedUsername,
+        name: trimmedUsername,
+        role: isMasterUser ? 'master' : 'member',
+      };
+
+      if (newUserId) {
+        newProfileData.id = newUserId;
+      }
+
+      // 2. Simpan user ke tabel profiles
       const { data, error } = await supabase
         .from('profiles')
-        .insert({
-          username: trimmedUsername,
-          password: password,
-          display_name: trimmedUsername,
-          name: trimmedUsername,
-          role: isMasterUser ? 'master' : 'member',
-        })
+        .insert(newProfileData)
         .select()
         .single();
 
       if (error || !data) {
-        return 'Akun tidak bisa dibuat. Coba lagi.';
+        console.error('Error dari Supabase saat buat akun:', error);
+        // Tampilkan pesan error asli dari database Supabase agar langsung ketahuan jika ada settingan DB yang kurang
+        return error ? `Database error: ${error.message}` : 'Akun tidak bisa dibuat. Coba lagi.';
+      }
+
+      // 3. Otomatis tambahkan juga ke tabel daftar pemain klub (club_players)
+      try {
+        await supabase.from('club_players').insert({
+          name: trimmedUsername,
+          profile_id: data.id,
+        });
+      } catch (playerSyncError) {
+        console.warn('Catatan: Nama gagal otomatis masuk club_players:', playerSyncError);
       }
 
       const profile: Profile = {
@@ -122,8 +156,9 @@ export function useAuth() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
       setState({ status: 'signed-in', profile });
       return null;
-    } catch {
-      return 'Terjadi kesalahan sistem saat mendaftar.';
+    } catch (err: any) {
+      console.error('Crash saat mendaftar:', err);
+      return err?.message || 'Terjadi kesalahan sistem saat mendaftar.';
     }
   };
 
