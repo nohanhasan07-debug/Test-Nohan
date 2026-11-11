@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import html2canvas from 'html2canvas';
+import { X, Sparkles, Trophy } from 'lucide-react';
 import { Player, Match } from '../types/playerCard';
 import { PlayerCard } from './PlayerCard';
 import { AdminPhotoUploadModal } from './AdminPhotoUploadModal';
@@ -24,11 +25,30 @@ export const PlayerCardsView: React.FC<PlayerCardsViewProps> = ({
   const [matchList, setMatchList] = useState<Match[]>(matches);
   const [isGeneratingBanner, setIsGeneratingBanner] = useState(false);
 
+  // State untuk fokus/zoom-in card yang dipencet
+  const [focusedPlayer, setFocusedPlayer] = useState<{
+    player: Player;
+    totalMatches: number;
+    wins: number;
+    losses: number;
+    winRate: number;
+    isPOTM: boolean;
+  } | null>(null);
+
   const storyExportRef = useRef<HTMLDivElement>(null);
 
-  // Tarik data terbaru jika props berubah atau saat pertama kali dibuka
+  // Escape key untuk keluar dari mode zoom-in
   useEffect(() => {
-    async function refreshLocalData() {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setFocusedPlayer(null);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // Sinkronisasi data real-time
+  useEffect(() => {
+    async function refreshData() {
       try {
         const [latestPlayers, latestMatches] = await Promise.all([
           fetchPlayers(),
@@ -37,10 +57,10 @@ export const PlayerCardsView: React.FC<PlayerCardsViewProps> = ({
         if (latestPlayers && latestPlayers.length > 0) setPlayerList(latestPlayers as any);
         if (latestMatches) setMatchList(latestMatches as any);
       } catch (err) {
-        console.warn('Gagal refresh data di PlayerCardsView:', err);
+        console.warn('Gagal sinkron data:', err);
       }
     }
-    void refreshLocalData();
+    void refreshData();
   }, [players, matches]);
 
   const isMasterAdmin =
@@ -48,18 +68,16 @@ export const PlayerCardsView: React.FC<PlayerCardsViewProps> = ({
     currentUserRole === 'admin' ||
     currentUserEmail.toLowerCase().includes('admin');
 
-  // Nama Bulan Berjalan
   const currentMonthName = useMemo(() => {
     return new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric' }).format(new Date());
   }, []);
 
-  // 1. HITUNG STATISTIK BULAN BERJALAN DARI SEMUA MATCH
+  // 1. STATISTIK PERFORMA BULAN BERJALAN
   const monthlyStatsMap = useMemo(() => {
     const now = new Date();
     const currentYear = now.getFullYear();
-    const currentMonth = now.getMonth(); // 0 = Jan, 10 = Nov, dst
+    const currentMonth = now.getMonth();
 
-    // Filter match yang HANYA berlangsung di bulan ini
     const currentMonthMatches = matchList.filter((m: any) => {
       const dateStr = m.date || m.match_date || m.created_at || '';
       if (!dateStr) return false;
@@ -102,15 +120,11 @@ export const PlayerCardsView: React.FC<PlayerCardsViewProps> = ({
     return stats;
   }, [playerList, matchList]);
 
-  // 2. PERHITUNGAN PLAYER OF THE MONTH (BERDASARKAN JUMLAH TANDING + WINRATE)
+  // 2. FORMULA POTM KEAKTIFAN & WINRATE
   const rankedMonthlyPlayers = useMemo(() => {
     const list = playerList.map((player) => {
       const s = monthlyStatsMap[player.id] || { total: 0, wins: 0, losses: 0 };
       const winRate = s.total > 0 ? (s.wins / s.total) * 100 : 0;
-
-      // FORMULA POTM KEAKTIFAN & KUALITAS:
-      // Poin = (Menang * 30) + (Total Match * 10) + (Win Rate * 0.5)
-      // Semakin sering tanding dan menang, peluang juara POTM semakin tinggi!
       const potmScore = (s.wins * 30) + (s.total * 10) + (winRate * 0.5);
 
       return {
@@ -131,11 +145,10 @@ export const PlayerCardsView: React.FC<PlayerCardsViewProps> = ({
     });
   }, [playerList, monthlyStatsMap]);
 
-  // Juara POTM adalah peringkat 1 yang sudah minimal bermain 1 pertandingan
   const potmCandidate =
     rankedMonthlyPlayers.find((p) => p.totalMatches > 0) || rankedMonthlyPlayers[0] || null;
 
-  // 3. GENERATE BANNER STORY IG
+  // 3. GENERATE IG STORY BANNER
   const handleGenerateStoryBanner = async () => {
     if (!storyExportRef.current || !potmCandidate) return;
 
@@ -172,33 +185,98 @@ export const PlayerCardsView: React.FC<PlayerCardsViewProps> = ({
     );
   };
 
+  // Partikel Bara Api Live
+  const embers = useMemo(() => {
+    return Array.from({ length: 24 }).map((_, i) => ({
+      id: i,
+      left: `${(i * 4.2 + (i % 3) * 2)}%`,
+      delay: `${(i * 0.4) % 6}s`,
+      duration: `${5 + ((i * 1.3) % 4)}s`,
+      size: `${3 + (i % 4)}px`,
+      drift: `${(i % 2 === 0 ? 1 : -1) * (20 + (i % 30))}px`,
+    }));
+  }, []);
+
   return (
     <div className="relative min-h-screen bg-gradient-to-b from-[#B84013] via-[#4A1504] to-[#0F0402] text-[#FDF8F5] px-4 py-8 md:py-12 overflow-hidden">
+      {/* ======================================================== */}
+      {/* ANIMASI LIVE API (FLOATING EMBERS & FLAME GLOW) */}
+      {/* ======================================================== */}
+      <style>{`
+        @keyframes riseEmber {
+          0% {
+            transform: translateY(105vh) translateX(0) scale(1);
+            opacity: 0;
+          }
+          15% {
+            opacity: 0.9;
+          }
+          85% {
+            opacity: 0.6;
+          }
+          100% {
+            transform: translateY(-10vh) translateX(var(--drift)) scale(0.2);
+            opacity: 0;
+          }
+        }
+        @keyframes flameFlicker {
+          0%, 100% { opacity: 0.25; transform: scale(1); }
+          50% { opacity: 0.45; transform: scale(1.08); }
+        }
+      `}</style>
+
+      {/* Kobaran Api Melayang dari Bawah */}
+      <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+        {embers.map((e) => (
+          <span
+            key={e.id}
+            style={
+              {
+                left: e.left,
+                width: e.size,
+                height: e.size,
+                animation: `riseEmber ${e.duration} linear infinite`,
+                animationDelay: e.delay,
+                '--drift': e.drift,
+                backgroundColor: e.id % 2 === 0 ? '#FF5500' : '#FFAA00',
+                boxShadow: '0 0 10px #FF5500, 0 0 20px #FF7A45',
+              } as React.CSSProperties
+            }
+            className="absolute bottom-0 rounded-full"
+          />
+        ))}
+      </div>
+
+      {/* Pendar Hangat Api Dasar */}
+      <div className="pointer-events-none fixed inset-x-0 bottom-0 h-96 bg-gradient-to-t from-[#FF4500]/25 via-[#B84013]/15 to-transparent blur-3xl animate-[flameFlicker_4s_ease-in-out_infinite]" />
       <div className="absolute top-10 left-1/2 -translate-x-1/2 w-96 h-96 bg-[#FF5500]/20 rounded-full blur-[140px] pointer-events-none" />
 
-      <div className="max-w-6xl mx-auto space-y-12 relative z-10">
-        {/* HEADER UTAMA */}
+      {/* ======================================================== */}
+      {/* KONTEN UTAMA */}
+      {/* ======================================================== */}
+      <div className={`max-w-6xl mx-auto space-y-12 relative z-10 transition-all duration-300 ${focusedPlayer ? 'filter blur-sm pointer-events-none' : ''}`}>
+        {/* HEADER */}
         <div className="text-center space-y-2">
           <div className="inline-flex items-center gap-2 bg-black/60 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/20 mb-2">
-            <span className="w-2 h-2 rounded-full bg-[#FF7A45] animate-pulse" />
-            <span className="text-[11px] font-mono tracking-widest text-[#FF7A45] uppercase font-bold">
-              PATC OFFICIAL ROSTER
+            <span className="w-2 h-2 rounded-full bg-[#FF7A45] animate-ping" />
+            <span style={{ color: '#FF7A45' }} className="text-[11px] font-mono tracking-widest uppercase font-bold">
+              PATC OFFICIAL ROSTER 🔥
             </span>
           </div>
           <h1 style={{ color: '#FFFFFF' }} className="text-4xl sm:text-5xl font-black tracking-tight uppercase">
             PLAYER <span style={{ color: '#FF7A45' }}>CARDS</span>
           </h1>
           <p style={{ color: 'rgba(253, 248, 245, 0.75)' }} className="text-xs sm:text-sm max-w-md mx-auto">
-            Statistik performa bulanan dan kartu resmi anggota Panic at the Court.
+            Statistik performa bulanan dan kartu resmi anggota Panic at the Court. Tekan kartu pemain untuk melihat detail.
           </p>
         </div>
 
         {/* CARD PLAYER OF THE MONTH (POTM) */}
         {potmCandidate && (
           <div className="relative flex flex-col items-center">
-            <div className="absolute -inset-4 bg-[#FF5500]/25 rounded-full blur-[90px] pointer-events-none" />
+            <div className="absolute -inset-4 bg-[#FF5500]/30 rounded-full blur-[100px] pointer-events-none animate-pulse" />
 
-            <div className="w-full max-w-sm sm:max-w-md bg-black/70 backdrop-blur-xl border border-white/20 p-6 rounded-3xl shadow-2xl relative">
+            <div className="w-full max-w-sm sm:max-w-md bg-black/75 backdrop-blur-xl border border-white/20 p-6 rounded-3xl shadow-2xl relative">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <span className="text-2xl">🏆</span>
@@ -232,6 +310,16 @@ export const PlayerCardsView: React.FC<PlayerCardsViewProps> = ({
                 winRate={potmCandidate.winRate}
                 isPOTM={true}
                 isAdmin={isMasterAdmin}
+                onClick={() =>
+                  setFocusedPlayer({
+                    player: potmCandidate.player,
+                    totalMatches: potmCandidate.totalMatches,
+                    wins: potmCandidate.wins,
+                    losses: potmCandidate.losses,
+                    winRate: potmCandidate.winRate,
+                    isPOTM: true,
+                  })
+                }
                 onEditPhoto={() => {
                   setSelectedPlayerForEdit(potmCandidate.player);
                   setIsUploadModalOpen(true);
@@ -239,9 +327,9 @@ export const PlayerCardsView: React.FC<PlayerCardsViewProps> = ({
               />
 
               <div className="mt-4 text-center">
-                <p style={{ color: 'rgba(253, 248, 245, 0.7)' }} className="text-[11px] font-medium">
+                <p style={{ color: 'rgba(253, 248, 245, 0.75)' }} className="text-[11px] font-medium">
                   {potmCandidate.totalMatches > 0
-                    ? `Memimpin dengan ${potmCandidate.totalMatches} pertandingan & ${potmCandidate.wins} kemenangan.`
+                    ? `👑 Memimpin dengan ${potmCandidate.totalMatches} pertandingan & ${potmCandidate.wins} kemenangan.`
                     : 'Belum ada pertandingan di bulan ini. Jadilah yang pertama tanding!'}
                 </p>
               </div>
@@ -257,7 +345,7 @@ export const PlayerCardsView: React.FC<PlayerCardsViewProps> = ({
                 ALL PATC MEMBERS
               </h2>
               <p style={{ color: '#FF7A45' }} className="text-xs font-bold mt-0.5">
-                Total {playerList.length} Pemain Terdaftar
+                Total {playerList.length} Pemain Terdaftar (Klik kartu untuk fokus)
               </p>
             </div>
             {isMasterAdmin && (
@@ -268,23 +356,101 @@ export const PlayerCardsView: React.FC<PlayerCardsViewProps> = ({
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-            {rankedMonthlyPlayers.map(({ player, totalMatches, winRate }) => (
-              <PlayerCard
-                key={player.id}
-                player={player}
-                matchesCount={totalMatches}
-                winRate={winRate}
-                isPOTM={potmCandidate?.player.id === player.id && totalMatches > 0}
-                isAdmin={isMasterAdmin}
-                onEditPhoto={() => {
-                  setSelectedPlayerForEdit(player);
-                  setIsUploadModalOpen(true);
-                }}
-              />
-            ))}
+            {rankedMonthlyPlayers.map(({ player, totalMatches, wins, losses, winRate }) => {
+              const isPOTM = potmCandidate?.player.id === player.id && totalMatches > 0;
+              return (
+                <PlayerCard
+                  key={player.id}
+                  player={player}
+                  matchesCount={totalMatches}
+                  winRate={winRate}
+                  isPOTM={isPOTM}
+                  isAdmin={isMasterAdmin}
+                  onClick={() =>
+                    setFocusedPlayer({
+                      player,
+                      totalMatches,
+                      wins,
+                      losses,
+                      winRate,
+                      isPOTM,
+                    })
+                  }
+                  onEditPhoto={() => {
+                    setSelectedPlayerForEdit(player);
+                    setIsUploadModalOpen(true);
+                  }}
+                />
+              );
+            })}
           </div>
         </div>
       </div>
+
+      {/* ======================================================== */}
+      {/* MODAL ZOOM-IN FOCUS CARD (KETIKA KARTU DIKLIK) */}
+      {/* ======================================================== */}
+      {focusedPlayer && (
+        <div
+          className="fixed inset-0 z-50 flex flex-col items-center justify-center p-4 bg-black/85 backdrop-blur-xl animate-in fade-in duration-200"
+          onClick={() => setFocusedPlayer(null)}
+        >
+          <div
+            className="relative w-full max-w-[320px] sm:max-w-[360px] flex flex-col items-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Ambient Flame Glow Fokus */}
+            <div className="absolute -inset-8 bg-[#FF5500]/35 rounded-full blur-[90px] animate-pulse pointer-events-none" />
+
+            {/* Tombol Tutup (X) */}
+            <button
+              type="button"
+              onClick={() => setFocusedPlayer(null)}
+              style={{
+                color: '#FFFFFF',
+                backgroundColor: 'rgba(255, 122, 69, 0.3)',
+                borderColor: '#FF7A45',
+              }}
+              className="absolute -top-12 right-0 flex h-9 w-9 items-center justify-center rounded-full border text-xs font-bold transition-all hover:bg-[#FF7A45] hover:text-black shadow-lg"
+            >
+              <X className="h-4 w-4" />
+            </button>
+
+            {/* Kartu Zoom-in */}
+            <div className="w-full transform scale-105 transition-all duration-300 shadow-[0_0_60px_rgba(255,100,0,0.5)] rounded-3xl overflow-hidden border-2 border-[#FF7A45]">
+              <PlayerCard
+                player={focusedPlayer.player}
+                matchesCount={focusedPlayer.totalMatches}
+                winRate={focusedPlayer.winRate}
+                isPOTM={focusedPlayer.isPOTM}
+                isAdmin={isMasterAdmin}
+                onEditPhoto={() => {
+                  setSelectedPlayerForEdit(focusedPlayer.player);
+                  setIsUploadModalOpen(true);
+                }}
+              />
+            </div>
+
+            {/* Pill Statistik Detail */}
+            <div className="mt-5 flex items-center justify-center gap-4 bg-black/80 border border-white/20 px-6 py-2.5 rounded-2xl shadow-2xl backdrop-blur-md">
+              <div className="text-center">
+                <span className="block text-[10px] font-bold uppercase tracking-wider text-[#4ADE80]">Menang</span>
+                <span style={{ color: '#FFFFFF' }} className="font-mono text-base font-extrabold">{focusedPlayer.wins}</span>
+              </div>
+              <span className="h-6 w-px bg-white/20" />
+              <div className="text-center">
+                <span className="block text-[10px] font-bold uppercase tracking-wider text-[#F87171]">Kalah</span>
+                <span style={{ color: '#FFFFFF' }} className="font-mono text-base font-extrabold">{focusedPlayer.losses}</span>
+              </div>
+              <span className="h-6 w-px bg-white/20" />
+              <div className="text-center">
+                <span className="block text-[10px] font-bold uppercase tracking-wider text-[#FF7A45]">Win Rate</span>
+                <span style={{ color: '#FF7A45' }} className="font-mono text-base font-extrabold">{focusedPlayer.winRate.toFixed(1)}%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* CONTAINER EXPORT IG STORY (9:16) */}
       {potmCandidate && (
