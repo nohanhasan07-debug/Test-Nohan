@@ -14,7 +14,6 @@ function App() {
   const [players, setPlayers] = useState<Player[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
 
-  // Tarik data pemain & match secara real-time setiap ganti tab atau login
   useEffect(() => {
     if (state.status === 'signed-in' && state.profile) {
       async function syncData() {
@@ -33,7 +32,6 @@ function App() {
     }
   }, [state.status, state.profile, currentView]);
 
-  // 1. TAMPILAN LOADING
   if (state.status === 'loading') {
     return (
       <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-[#0F0402] px-4">
@@ -56,12 +54,10 @@ function App() {
     );
   }
 
-  // 2. TAMPILAN AUTH
   if (state.status === 'signed-out') {
     return <AuthPage onSignIn={signIn} onSignUp={signUp} />;
   }
 
-  // 3. TAMPILAN JIKA PROFIL BELUM ADA
   if (!state.profile) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#0F0402] px-4">
@@ -86,10 +82,9 @@ function App() {
 
   const currentUserIdent = (state.profile as any).email || state.profile.username || '';
 
-  // 4. TAMPILAN UTAMA
   return (
     <div className="min-h-screen bg-transparent text-[#FDF8F5]">
-      {/* Tombol Tab Klasemen vs Player Cards */}
+      {/* Tombol Tab Navigasi */}
       <div className="fixed top-4 right-6 z-50 flex items-center gap-2 bg-black/80 backdrop-blur-md border border-white/20 px-3 py-1.5 rounded-full shadow-2xl">
         <button
           type="button"
@@ -125,6 +120,8 @@ function App() {
           matches={matches}
           currentUserEmail={currentUserIdent}
           currentUserRole={state.profile.role || 'member'}
+          currentUserId={state.profile.id}
+          currentUsername={state.profile.username}
         />
       )}
     </div>
