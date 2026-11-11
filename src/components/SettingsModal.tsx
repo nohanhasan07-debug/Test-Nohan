@@ -1,174 +1,504 @@
-import { useState, type FormEvent } from 'react';
-import { X, Trash2, UserPlus, AlertTriangle } from 'lucide-react';
-import { useClubData } from '@/hooks/useClubData';
-import { getErrorMessage } from '@/lib/errors';
-import type { Player } from '@/types';
+import { useEffect, useState, useMemo } from 'react';
+import {
+  X,
+  Search,
+  Shield,
+  ShieldAlert,
+  Key,
+  Edit2,
+  Trash2,
+  Check,
+  User,
+  AlertCircle,
+  RefreshCw,
+} from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 
 interface SettingsModalProps {
   currentUserId: string;
   onClose: () => void;
 }
 
-export default function SettingsModal({ onClose }: SettingsModalProps) {
-  const { players, savePlayer, deletePlayer } = useClubData();
-  const [newPlayerName, setNewPlayerName] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [playerToDelete, setPlayerToDelete] = useState<Player | null>(null);
+interface MemberAccount {
+  id: string;
+  username: string;
+  display_name?: string;
+  name?: string;
+  role: 'master' | 'member';
+  password?: string;
+}
 
-  // Tambah Pemain Baru
-  const handleAddPlayer = async (e: FormEvent) => {
-    e.preventDefault();
-    if (!newPlayerName.trim()) return;
+export default function SettingsModal({ currentUserId, onClose }: SettingsModalProps) {
+  const [members, setMembers] = useState<MemberAccount[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-    setSubmitting(true);
-    setError(null);
+  // State untuk form edit username
+  const [editingUsernameId, setEditingUsernameId] = useState<string | null>(null);
+  const [newUsernameInput, setNewUsernameInput] = useState('');
+
+  // State untuk form reset password
+  const [resettingPasswordId, setResettingPasswordId] = useState<string | null>(null);
+  const [newPasswordInput, setNewPasswordInput] = useState('');
+
+  // Tutup modal dengan tombol Escape
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+  // Ambil semua daftar akun dari database
+  const loadMembers = async () => {
     try {
-      await savePlayer({ name: newPlayerName.trim() });
-      setNewPlayerName('');
-    } catch (err) {
-      setError(getErrorMessage(err));
+      setLoading(true);
+      setErrorMessage(null);
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('role', { ascending: false });
+
+      if (error) throw error;
+      if (data) {
+        setMembers(data as MemberAccount[]);
+      }
+    } catch (err: any) {
+      console.error('Gagal memuat akun member:', err);
+      setErrorMessage(err.message || 'Gagal memuat data akun dari database.');
     } finally {
-      setSubmitting(false);
+      setLoading(false);
     }
   };
 
-  // Eksekusi Hapus Pemain
-  const handleConfirmDelete = async () => {
-    if (!playerToDelete) return;
+  useEffect(() => {
+    void loadMembers();
+  }, []);
 
-    setSubmitting(true);
-    setError(null);
+  // Filter daftar member berdasarkan pencarian
+  const filteredMembers = useMemo(() => {
+    if (!searchQuery.trim()) return members;
+    const q = searchQuery.toLowerCase();
+    return members.filter(
+      (m) =>
+        m.username.toLowerCase().includes(q) ||
+        (m.display_name && m.display_name.toLowerCase().includes(q))
+    );
+  }, [members, searchQuery]);
+
+  // 1. FUNGSI UBAH PERAN (MEMBER <-> MASTER)
+  const handleToggleRole = async (member: MemberAccount) => {
+    if (member.id === currentUserId) {
+      alert('Anda tidak bisa mengubah peran akun Anda sendiri.');
+      return;
+    }
+
+    const nextRole = member.role === 'master' ? 'member' : 'master';
+    const roleLabel = nextRole === 'master' ? 'Master Admin' : 'Member Biasa';
+
+    if (!window.confirm(`Ubah peran @${member.username} menjadi ${roleLabel}?`)) return;
+
     try {
-      await deletePlayer(playerToDelete.id);
-      setPlayerToDelete(null);
-    } catch (err) {
-      setError(getErrorMessage(err));
-    } finally {
-      setSubmitting(false);
+      setStatusMessage(null);
+      setErrorMessage(null);
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({ role: nextRole })
+        .eq('id', member.id);
+
+      if (error) throw error;
+
+      setMembers((prev) =>
+        prev.map((m) => (m.id === member.id ? { ...m, role: nextRole } : m))
+      );
+      setStatusMessage(`Berhasil mengubah @${member.username} menjadi ${roleLabel}!`);
+    } catch (err: any) {
+      setErrorMessage(`Gagal mengubah peran: ${err.message}`);
+    }
+  };
+
+  // 2. FUNGSI GANTI USERNAME
+  const handleSaveUsername = async (memberId: string) => {
+    const trimmed = newUsernameInput.trim().toLowerCase();
+    if (!trimmed) {
+      setErrorMessage('Username tidak boleh kosong.');
+      return;
+    }
+
+    try {
+      setStatusMessage(null);
+      setErrorMessage(null);
+
+      // Cek apakah username sudah dipakai akun lain
+      const { data: taken } = await supabase
+        .from('profiles')
+        .select('id')
+        .ilike('username', trimmed)
+        .neq('id', memberId)
+        .maybeSingle();
+
+      if (taken) {
+        setErrorMessage('Username ini sudah dipakai oleh akun lain.');
+        return;
+      }
+
+      // Update di profiles
+      const { error: profileErr } = await supabase
+        .from('profiles')
+        .update({
+          username: trimmed,
+          display_name: trimmed,
+          name: trimmed,
+        })
+        .eq('id', memberId);
+
+      if (profileErr) throw profileErr;
+
+      // Update juga di tabel club_players jika terhubung
+      await supabase
+        .from('club_players')
+        .update({ name: trimmed })
+        .eq('profile_id', memberId);
+
+      setMembers((prev) =>
+        prev.map((m) => (m.id === memberId ? { ...m, username: trimmed, display_name: trimmed } : m))
+      );
+
+      setStatusMessage(`Username berhasil diubah menjadi @${trimmed}!`);
+      setEditingUsernameId(null);
+      setNewUsernameInput('');
+    } catch (err: any) {
+      setErrorMessage(`Gagal ganti username: ${err.message}`);
+    }
+  };
+
+  // 3. FUNGSI RESET PASSWORD
+  const handleSavePassword = async (memberId: string, username: string) => {
+    if (!newPasswordInput || newPasswordInput.length < 6) {
+      setErrorMessage('Password baru minimal 6 karakter.');
+      return;
+    }
+
+    try {
+      setStatusMessage(null);
+      setErrorMessage(null);
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({ password: newPasswordInput })
+        .eq('id', memberId);
+
+      if (error) throw error;
+
+      setStatusMessage(`Password untuk @${username} berhasil diperbarui!`);
+      setResettingPasswordId(null);
+      setNewPasswordInput('');
+    } catch (err: any) {
+      setErrorMessage(`Gagal ubah password: ${err.message}`);
+    }
+  };
+
+  // 4. FUNGSI HAPUS AKUN
+  const handleDeleteMember = async (member: MemberAccount) => {
+    if (member.id === currentUserId) {
+      alert('Anda tidak bisa menghapus akun Anda sendiri.');
+      return;
+    }
+
+    if (
+      !window.confirm(
+        `PERINGATAN: Apakah Anda yakin ingin menghapus permanen akun @${member.username}?`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      setStatusMessage(null);
+      setErrorMessage(null);
+
+      const { error } = await supabase.from('profiles').delete().eq('id', member.id);
+      if (error) throw error;
+
+      // Hapus juga dari club_players jika ada
+      await supabase.from('club_players').delete().eq('profile_id', member.id);
+
+      setMembers((prev) => prev.filter((m) => m.id !== member.id));
+      setStatusMessage(`Akun @${member.username} berhasil dihapus.`);
+    } catch (err: any) {
+      setErrorMessage(`Gagal menghapus akun: ${err.message}`);
     }
   };
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/85 backdrop-blur-md"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="relative w-full max-w-lg overflow-hidden rounded-3xl border border-[#FF7A45]/30 bg-gradient-to-b from-[#2D0D06] via-[#1E0904] to-[#0F0402] p-6 text-white shadow-2xl max-h-[90vh] overflow-y-auto">
-        {/* Header Modal */}
-        <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-5">
-          <h2 className="font-serif text-2xl font-bold tracking-wide text-[#FDF8F5]">
-            Pengaturan Master
-          </h2>
+      <div className="relative flex flex-col w-full max-w-2xl max-h-[90vh] overflow-hidden rounded-3xl border border-[#FF7A45]/30 bg-gradient-to-b from-[#2D0D06] via-[#1E0904] to-[#0F0402] shadow-2xl shadow-black">
+        {/* HEADER MODAL */}
+        <div className="flex items-center justify-between border-b border-white/10 px-6 py-4">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#FF7A45]/15 border border-[#FF7A45]/40 text-[#FF7A45]">
+              <Shield className="h-5 w-5" />
+            </div>
+            <div>
+              <h2 className="font-serif text-xl font-bold tracking-wide text-[#FDF8F5]">
+                Pengaturan Master
+              </h2>
+              <p className="text-[11px] font-sans uppercase tracking-widest text-[#FF7A45]">
+                Manajemen Akun & Hak Akses
+              </p>
+            </div>
+          </div>
+
           <button
             type="button"
             onClick={onClose}
+            aria-label="Tutup modal"
             className="flex h-8 w-8 items-center justify-center rounded-full border border-white/20 text-[#FDF8F5] transition hover:bg-white/10"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
 
-        {/* Form Tambah Pemain */}
-        <form onSubmit={handleAddPlayer} className="mb-6">
-          <label className="block text-[#FF7A45] font-bold text-[11px] tracking-widest uppercase mb-1.5">
-            Tambah Pemain Baru
-          </label>
-          <div className="flex gap-2">
-            <input
-              type="text"
-              placeholder="Nama pemain..."
-              value={newPlayerName}
-              onChange={(e) => setNewPlayerName(e.target.value)}
-              style={{
-                color: '#FDF8F5',
-                backgroundColor: '#120402',
-                borderColor: 'rgba(255, 122, 69, 0.4)',
-              }}
-              className="flex-1 rounded-xl border px-3 py-2 text-xs font-semibold outline-none focus:border-[#FF7A45]"
-            />
-            <button
-              type="submit"
-              disabled={submitting || !newPlayerName.trim()}
-              style={{ background: 'linear-gradient(to right, #B84013, #FF7A45)' }}
-              className="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-bold text-white shadow hover:brightness-110 active:scale-95 disabled:opacity-50"
-            >
-              <UserPlus className="h-3.5 w-3.5" />
-              <span>Tambah</span>
-            </button>
-          </div>
-        </form>
-
-        {/* List Pemain Terdaftar */}
-        <div>
-          <span className="block text-[#FF7A45] font-bold text-[11px] tracking-widest uppercase mb-2">
-            Daftar Pemain ({players.length})
-          </span>
-          <div className="flex flex-col gap-2 max-h-64 overflow-y-auto pr-1">
-            {players.map((player) => (
-              <div
-                key={player.id}
-                className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-3.5 py-2.5 transition hover:bg-white/10"
-              >
-                <span className="font-serif font-bold text-[#FDF8F5] text-sm">
-                  {player.name}
-                </span>
-
-                {/* Tombol Hapus Pemain dengan Ikon Sampah */}
-                <button
-                  type="button"
-                  onClick={() => setPlayerToDelete(player)}
-                  aria-label={`Hapus ${player.name}`}
-                  className="rounded-lg p-1.5 text-white/50 transition hover:bg-red-500/20 hover:text-red-400"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              </div>
-            ))}
-          </div>
+        {/* NOTIFIKASI SUKSES / ERROR */}
+        <div className="px-6 pt-3 space-y-2">
+          {statusMessage && (
+            <div className="flex items-center gap-2 rounded-xl border border-green-500/40 bg-green-500/10 px-4 py-2.5 text-xs text-green-300">
+              <Check className="h-4 w-4 shrink-0 text-green-400" />
+              <span>{statusMessage}</span>
+            </div>
+          )}
+          {errorMessage && (
+            <div className="flex items-center gap-2 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-2.5 text-xs text-red-300">
+              <AlertCircle className="h-4 w-4 shrink-0 text-red-400" />
+              <span>{errorMessage}</span>
+            </div>
+          )}
         </div>
 
-        {error && (
-          <p className="mt-4 rounded-xl border border-red-500/40 bg-red-500/15 px-3 py-2 text-xs text-red-300">
-            {error}
-          </p>
-        )}
-
-        {/* POP-UP MODAL KONFIRMASI HAPUS PEMAIN */}
-        {playerToDelete && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-            <div className="w-full max-w-sm rounded-3xl border border-red-500/40 bg-[#1A0A06] p-6 text-center shadow-2xl">
-              <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-red-500/15 text-red-400">
-                <AlertTriangle className="h-6 w-6" />
-              </div>
-              <h3 className="font-serif text-lg font-bold text-[#FDF8F5]">
-                Hapus Pemain?
-              </h3>
-              <p className="mt-1.5 text-xs text-[#FDF8F5]/70 leading-relaxed">
-                Apakah Anda yakin ingin menghapus <strong>{playerToDelete.name}</strong>? Data pertandingan terkait mungkin akan terpengaruh.
-              </p>
-              <div className="mt-5 flex gap-2 justify-center">
-                <button
-                  type="button"
-                  onClick={() => setPlayerToDelete(null)}
-                  className="rounded-xl border border-white/20 px-4 py-2 text-xs font-semibold text-[#FDF8F5] hover:bg-white/10"
-                >
-                  Batal
-                </button>
-                <button
-                  type="button"
-                  onClick={handleConfirmDelete}
-                  disabled={submitting}
-                  className="rounded-xl bg-red-500 px-5 py-2 text-xs font-bold text-white shadow hover:bg-red-600 disabled:opacity-50"
-                >
-                  {submitting ? 'Menghapus...' : 'Ya, Hapus'}
-                </button>
-              </div>
-            </div>
+        {/* SEARCH BAR & INFO */}
+        <div className="px-6 pt-3 pb-2 flex items-center justify-between gap-3">
+          <div className="relative flex-1">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#FF7A45]" />
+            <input
+              type="text"
+              placeholder="Cari username member..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{
+                backgroundColor: '#120402',
+                borderColor: 'rgba(255, 122, 69, 0.3)',
+                color: '#FDF8F5',
+              }}
+              className="w-full rounded-2xl border py-2 pl-9 pr-4 text-xs font-medium outline-none focus:border-[#FF7A45]"
+            />
           </div>
-        )}
+
+          <button
+            type="button"
+            onClick={() => void loadMembers()}
+            title="Muat ulang daftar"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl border border-white/15 bg-white/5 text-[#FDF8F5] transition hover:bg-white/10"
+          >
+            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin text-[#FF7A45]' : ''}`} />
+          </button>
+        </div>
+
+        {/* DAFTAR AKUN MEMBER */}
+        <div className="flex-1 overflow-y-auto px-6 py-3 space-y-3">
+          {loading ? (
+            <div className="py-12 text-center">
+              <p className="font-serif text-xs uppercase tracking-widest text-[#FF7A45] animate-pulse">
+                Memuat Akun Member...
+              </p>
+            </div>
+          ) : filteredMembers.length === 0 ? (
+            <div className="py-12 text-center text-xs text-white/50">
+              Tidak ada akun member yang cocok.
+            </div>
+          ) : (
+            filteredMembers.map((member) => {
+              const isSelf = member.id === currentUserId;
+              const isMaster = member.role === 'master';
+
+              return (
+                <div
+                  key={member.id}
+                  className="rounded-2xl border border-white/10 bg-[#120402]/70 p-4 transition-all hover:border-white/20"
+                >
+                  {/* BARIS UTAMA: INFO USER & BADGE ROLE */}
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/15 bg-white/5 text-[#FDF8F5]">
+                        <User className="h-5 w-5 text-[#FF7A45]" />
+                      </div>
+
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-serif text-sm font-bold text-white">
+                            @{member.username}
+                          </span>
+                          {isSelf && (
+                            <span className="rounded-full bg-white/10 px-2 py-0.5 text-[9px] uppercase tracking-wider text-[#FF7A45] font-semibold">
+                              (Anda)
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[10px] text-white/60">
+                          {member.display_name || member.name || 'Member Club'}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* STATUS ROLE & TOMBOL UBAH ROLE */}
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                          isMaster
+                            ? 'bg-[#FF7A45]/20 border border-[#FF7A45]/50 text-[#FF7A45]'
+                            : 'bg-white/10 border border-white/15 text-white/70'
+                        }`}
+                      >
+                        {isMaster ? <Shield className="h-3 w-3" /> : null}
+                        {isMaster ? 'Master Admin' : 'Member'}
+                      </span>
+
+                      {!isSelf && (
+                        <button
+                          type="button"
+                          onClick={() => handleToggleRole(member)}
+                          className="rounded-xl border border-white/20 bg-white/5 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white hover:bg-[#FF7A45] hover:text-[#0F0402] transition-colors"
+                        >
+                          {isMaster ? 'Turunkan ke Member' : 'Jadikan Master 👑'}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* FORM EDIT USERNAME (JIKA DIKLIK) */}
+                  {editingUsernameId === member.id && (
+                    <div className="mt-3 pt-3 border-t border-white/10 flex flex-wrap items-center gap-2">
+                      <input
+                        type="text"
+                        placeholder="Username baru..."
+                        value={newUsernameInput}
+                        onChange={(e) => setNewUsernameInput(e.target.value)}
+                        className="rounded-xl border border-[#FF7A45]/40 bg-[#0F0402] px-3 py-1.5 text-xs text-white outline-none focus:border-[#FF7A45]"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleSaveUsername(member.id)}
+                        className="rounded-xl bg-[#FF7A45] px-3 py-1.5 text-xs font-bold uppercase text-[#0F0402] hover:brightness-110"
+                      >
+                        Simpan
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditingUsernameId(null);
+                          setNewUsernameInput('');
+                        }}
+                        className="rounded-xl border border-white/20 px-3 py-1.5 text-xs text-white/70 hover:text-white"
+                      >
+                        Batal
+                      </button>
+                    </div>
+                  )}
+
+                  {/* FORM RESET PASSWORD (JIKA DIKLIK) */}
+                  {resettingPasswordId === member.id && (
+                    <div className="mt-3 pt-3 border-t border-white/10 flex flex-wrap items-center gap-2">
+                      <input
+                        type="text"
+                        placeholder="Password baru (min. 6 karakter)..."
+                        value={newPasswordInput}
+                        onChange={(e) => setNewPasswordInput(e.target.value)}
+                        className="rounded-xl border border-[#FF7A45]/40 bg-[#0F0402] px-3 py-1.5 text-xs text-white outline-none focus:border-[#FF7A45]"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleSavePassword(member.id, member.username)}
+                        className="rounded-xl bg-[#FF7A45] px-3 py-1.5 text-xs font-bold uppercase text-[#0F0402] hover:brightness-110"
+                      >
+                        Perbarui Password
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setResettingPasswordId(null);
+                          setNewPasswordInput('');
+                        }}
+                        className="rounded-xl border border-white/20 px-3 py-1.5 text-xs text-white/70 hover:text-white"
+                      >
+                        Batal
+                      </button>
+                    </div>
+                  )}
+
+                  {/* TOMBOL AKSI CEPAT (GANTI USERNAME, GANTI PASSWORD, HAPUS AKUN) */}
+                  <div className="mt-3 pt-2.5 border-t border-white/5 flex flex-wrap items-center justify-end gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingUsernameId(editingUsernameId === member.id ? null : member.id);
+                        setNewUsernameInput(member.username);
+                        setResettingPasswordId(null);
+                      }}
+                      className="inline-flex items-center gap-1 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] text-white/80 hover:bg-white/10 hover:text-white transition"
+                    >
+                      <Edit2 className="h-3 w-3 text-[#FF7A45]" />
+                      <span>Ubah Username</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setResettingPasswordId(resettingPasswordId === member.id ? null : member.id);
+                        setNewPasswordInput('');
+                        setEditingUsernameId(null);
+                      }}
+                      className="inline-flex items-center gap-1 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] text-white/80 hover:bg-white/10 hover:text-white transition"
+                    >
+                      <Key className="h-3 w-3 text-[#FF7A45]" />
+                      <span>Ubah Password</span>
+                    </button>
+
+                    {!isSelf && (
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteMember(member)}
+                        title="Hapus Akun Permanen"
+                        className="inline-flex items-center gap-1 rounded-lg border border-red-500/20 bg-red-500/10 px-2.5 py-1 text-[11px] text-red-400 hover:bg-red-500/20 transition"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                        <span>Hapus</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        {/* FOOTER MODAL */}
+        <div className="border-t border-white/10 px-6 py-3 text-right">
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-xl border border-white/20 bg-white/5 px-5 py-2 text-xs font-bold uppercase tracking-wider text-white hover:bg-white/10"
+          >
+            Tutup
+          </button>
+        </div>
       </div>
     </div>
   );
