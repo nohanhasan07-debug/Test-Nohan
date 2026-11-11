@@ -20,22 +20,22 @@ export default function DailyRecap({
   dates,
   onDateChange,
 }: DailyRecapProps) {
-  // 1. Filter pertandingan yang HANYA berlangsung di tanggal terpilih
+  // 1. Filter pertandingan yang berlangsung di tanggal terpilih
   const dailyMatches = useMemo(
     () => matches.filter((m) => m.date === date),
     [matches, date]
   );
 
-  // 2. Hitung klasemen harian berdasarkan laga di hari tersebut
+  // 2. Hitung klasemen harian
   const standings = useMemo(
     () => sortDailyStandings(computeStats(players, dailyMatches)),
     [players, dailyMatches]
   );
 
-  // 3. Logika navigasi panah mundur / maju antar tanggal pertandingan
+  // 3. Navigasi panah mundur / maju
   const currentIndex = dates.indexOf(date);
-  const hasPrev = currentIndex < dates.length - 1; // Tanggal lebih lama
-  const hasNext = currentIndex > 0; // Tanggal lebih baru
+  const hasPrev = currentIndex < dates.length - 1;
+  const hasNext = currentIndex > 0;
 
   const handlePrevDate = () => {
     if (hasPrev) onDateChange(dates[currentIndex + 1]);
@@ -63,9 +63,8 @@ export default function DailyRecap({
         </p>
       </div>
 
-      {/* SELECTOR TANGGAL KHUSUS HARI PERTANDINGAN (TANPA KALENDER PENUH) */}
+      {/* SELECTOR TANGGAL KHUSUS HARI PERTANDINGAN */}
       <div className="relative mt-6 mb-7 flex items-center justify-center gap-2 sm:gap-3">
-        {/* Tombol Panah Mundur (Hari Pertandingan Sebelumnya) */}
         <button
           type="button"
           onClick={handlePrevDate}
@@ -81,7 +80,6 @@ export default function DailyRecap({
           <ChevronLeft className="h-5 w-5" />
         </button>
 
-        {/* Dropdown Hanya Tanggal yang Ada Gamenya */}
         <div className="relative min-w-[200px] sm:min-w-[260px]">
           <div className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[#FF7A45]">
             <Calendar className="h-4 w-4" />
@@ -117,7 +115,6 @@ export default function DailyRecap({
           </span>
         </div>
 
-        {/* Tombol Panah Maju (Hari Pertandingan Berikutnya) */}
         <button
           type="button"
           onClick={handleNextDate}
@@ -134,7 +131,7 @@ export default function DailyRecap({
         </button>
       </div>
 
-      {/* KLASEMEN HARIAN */}
+      {/* TABEL KLASEMEN HARIAN */}
       {standings.length === 0 ? (
         <div className="py-12 text-center rounded-2xl border border-white/10 bg-white/5">
           <p style={{ color: 'rgba(253, 248, 245, 0.6)' }} className="text-xs">
@@ -147,13 +144,13 @@ export default function DailyRecap({
             <table className="w-full text-left text-xs">
               <thead>
                 <tr className="border-b border-white/10 bg-white/5 text-[11px] font-bold uppercase tracking-wider text-[#FF7A45]">
-                  <th className="py-3 pl-4 pr-2">#</th>
-                  <th className="py-3 px-3">Pemain</th>
-                  <th className="py-3 px-2 text-center">MP</th>
-                  <th className="py-3 px-2 text-center">W</th>
-                  <th className="py-3 px-2 text-center">L</th>
-                  <th className="py-3 px-2 text-center">GD</th>
-                  <th className="py-3 pr-4 text-right">Poin</th>
+                  <th className="py-3.5 pl-4 pr-2">#</th>
+                  <th className="py-3.5 px-3">Pemain</th>
+                  <th className="py-3.5 px-3 text-center">MP</th>
+                  <th className="py-3.5 px-3 text-center">W</th>
+                  <th className="py-3.5 px-3 text-center">L</th>
+                  <th className="py-3.5 px-3 text-center">GD</th>
+                  <th className="py-3.5 pr-4 text-right">Poin</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
@@ -164,35 +161,56 @@ export default function DailyRecap({
                       key={player.playerId}
                       className="transition-colors hover:bg-white/5"
                     >
+                      {/* RANK */}
                       <td className="py-3.5 pl-4 pr-2 font-serif font-bold text-sm text-[#FDF8F5]">
-                        <span className="flex items-center gap-1">
+                        <span className="flex items-center gap-1.5">
                           {isFirst && <Trophy className="h-3.5 w-3.5 text-[#D4AF37]" />}
                           #{index + 1}
                         </span>
                       </td>
 
+                      {/* NAMA PEMAIN */}
                       <td className="py-3.5 px-3">
                         <span style={{ color: '#FFFFFF' }} className="font-serif text-sm font-bold">
                           {player.name}
                         </span>
                       </td>
 
-                      <td className="py-3.5 px-2 text-center font-mono font-medium text-white/80">
+                      {/* MP (MATCH PLAYED) - PUTIH TERANG */}
+                      <td
+                        style={{ color: '#FFFFFF' }}
+                        className="py-3.5 px-3 text-center font-mono font-bold text-sm"
+                      >
                         {player.mp}
                       </td>
 
-                      <td className="py-3.5 px-2 text-center font-mono font-medium text-[#4ADE80]">
+                      {/* W (WIN) - HIJAU */}
+                      <td
+                        style={{ color: '#4ADE80' }}
+                        className="py-3.5 px-3 text-center font-mono font-bold text-sm"
+                      >
                         {player.w}
                       </td>
 
-                      <td className="py-3.5 px-2 text-center font-mono font-medium text-[#F87171]">
+                      {/* L (LOSS) - MERAH */}
+                      <td
+                        style={{ color: '#F87171' }}
+                        className="py-3.5 px-3 text-center font-mono font-bold text-sm"
+                      >
                         {player.l}
                       </td>
 
-                      <td className="py-3.5 px-2 text-center font-mono font-medium text-white/80">
+                      {/* GD (GAME DIFFERENCE) - HIJAU JIKA +, MERAH JIKA -, PUTIH JIKA 0 */}
+                      <td
+                        style={{
+                          color: player.gd > 0 ? '#4ADE80' : player.gd < 0 ? '#F87171' : '#FFFFFF',
+                        }}
+                        className="py-3.5 px-3 text-center font-mono font-extrabold text-sm"
+                      >
                         {player.gd > 0 ? `+${player.gd}` : player.gd}
                       </td>
 
+                      {/* POIN - ORANYE BESAR */}
                       <td className="py-3.5 pr-4 text-right font-serif font-black text-base text-[#FF7A45]">
                         {player.pts}
                       </td>
@@ -225,7 +243,8 @@ export default function DailyRecap({
                 return (
                   <div
                     key={m.id}
-                    className="flex items-center justify-between rounded-xl border border-white/10 bg-[#140603] p-3 text-xs shadow-md"
+                    style={{ backgroundColor: '#140603', borderColor: 'rgba(255, 122, 69, 0.25)' }}
+                    className="flex items-center justify-between rounded-xl border p-3 text-xs shadow-md"
                   >
                     {/* TIM A */}
                     <div className="flex-1 text-left min-w-0 pr-2">
@@ -238,9 +257,9 @@ export default function DailyRecap({
                     </div>
 
                     {/* SKOR GAME */}
-                    <div className="flex items-center gap-2 px-2 py-1 rounded-lg bg-black/60 border border-white/10 font-mono font-bold text-xs shrink-0">
+                    <div className="flex items-center gap-2 px-2.5 py-1 rounded-lg bg-black/70 border border-white/15 font-mono font-bold text-xs shrink-0">
                       <span style={{ color: isWonA ? '#4ADE80' : '#FFFFFF' }}>{m.gamesA}</span>
-                      <span className="text-white/40">-</span>
+                      <span style={{ color: 'rgba(253, 248, 245, 0.5)' }}>-</span>
                       <span style={{ color: isWonB ? '#4ADE80' : '#FFFFFF' }}>{m.gamesB}</span>
                     </div>
 
