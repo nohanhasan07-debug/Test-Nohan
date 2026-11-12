@@ -9,6 +9,7 @@ import {
   Settings,
   Swords,
   User,
+  Wallet,
   X,
   type LucideIcon,
 } from 'lucide-react';
@@ -27,6 +28,7 @@ interface SidebarProps {
   onChangeTab: (tab: LeaderboardTab) => void;
   onOpenSettings: () => void;
   onOpenLogMatch?: () => void;
+  onOpenFinance?: () => void; // Menu Keuangan
   onSignOut: () => void;
   mobileOpen: boolean;
   onCloseMobile: () => void;
@@ -56,6 +58,7 @@ export default function Sidebar({
   onChangeTab,
   onOpenSettings,
   onOpenLogMatch,
+  onOpenFinance,
   onSignOut,
   mobileOpen,
   onCloseMobile,
@@ -153,11 +156,7 @@ export default function Sidebar({
                         if (item.tab) onChangeTab(item.tab);
                       })
                     }
-                    style={
-                      active
-                        ? { color: '#FFFFFF' }
-                        : { color: '#FDF8F5' }
-                    }
+                    style={active ? { color: '#FFFFFF' } : { color: '#FDF8F5' }}
                     className={`flex w-full items-center gap-3 px-3.5 py-2.5 text-left text-xs transition-all ${
                       active
                         ? 'rounded-2xl border border-white/25 bg-gradient-to-r from-[#B84013] to-[#FF7A45] font-semibold shadow-lg shadow-[#B84013]/40 drop-shadow'
@@ -182,15 +181,26 @@ export default function Sidebar({
                 Admin Panel
               </p>
               <ul className="flex flex-col gap-1.5">
+                {/* MENU KEUANGAN KAS (BARU) */}
+                {onOpenFinance && (
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => choose(onOpenFinance)}
+                      style={{ color: '#4ADE80', backgroundColor: 'rgba(74, 222, 128, 0.1)', borderColor: 'rgba(74, 222, 128, 0.25)' }}
+                      className="flex w-full items-center gap-3 rounded-2xl border px-3.5 py-2.5 text-left text-xs font-bold transition-all hover:bg-[#4ADE80]/20"
+                    >
+                      <Wallet className="h-4 w-4 shrink-0 text-[#4ADE80]" aria-hidden="true" />
+                      <span className="truncate">Keuangan Kas 💰</span>
+                    </button>
+                  </li>
+                )}
+
                 <li>
                   <button
                     type="button"
                     onClick={() => choose(() => onChangeView('approvals'))}
-                    style={
-                      view === 'approvals'
-                        ? { color: '#FFFFFF' }
-                        : { color: '#FDF8F5' }
-                    }
+                    style={view === 'approvals' ? { color: '#FFFFFF' } : { color: '#FDF8F5' }}
                     className={`flex w-full items-center gap-3 px-3.5 py-2.5 text-left text-xs transition-all ${
                       view === 'approvals'
                         ? 'rounded-2xl border border-white/25 bg-gradient-to-r from-[#B84013] to-[#FF7A45] font-semibold shadow-lg shadow-[#B84013]/40 drop-shadow'
@@ -225,7 +235,7 @@ export default function Sidebar({
           )}
         </nav>
 
-        {/* FOOTER USER CARD (DIPERJELAS KONTRASNYA) */}
+        {/* FOOTER USER CARD */}
         <div className="border-t border-white/10 pt-4">
           <div
             style={{ borderColor: 'rgba(255, 122, 69, 0.4)', backgroundColor: 'rgba(255, 122, 69, 0.1)' }}
