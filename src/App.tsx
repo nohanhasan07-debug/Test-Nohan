@@ -3,6 +3,7 @@ import ClubLogo from '@/components/ClubLogo';
 import AuthPage from '@/components/AuthPage';
 import LeaderboardPage from '@/components/LeaderboardPage';
 import { PlayerCardsView } from '@/components/PlayerCardsView';
+import FinancePage from '@/components/FinancePage';
 import { useAuth } from '@/hooks/useAuth';
 import { fetchPlayers, fetchMatches } from '@/lib/clubData';
 import { Player, Match } from '@/types/playerCard';
@@ -11,8 +12,30 @@ function App() {
   const { state, signIn, signUp, signOut } = useAuth();
 
   const [currentView, setCurrentView] = useState<'leaderboard' | 'cards'>('leaderboard');
+  const [isFinancePage, setIsFinancePage] = useState(false);
   const [players, setPlayers] = useState<Player[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
+
+  // Dukungan Tombol Back di Browser
+  useEffect(() => {
+    const handlePopState = () => {
+      setIsFinancePage(window.location.pathname === '/finance');
+    };
+    window.addEventListener('popstate', handlePopState);
+    if (window.location.pathname === '/finance') {
+      setIsFinancePage(true);
+    }
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  const openFinancePage = () => {
+    window.history.pushState({ page: 'finance' }, '', '/finance');
+    setIsFinancePage(true);
+  };
+
+  const closeFinancePage = () => {
+    window.history.back();
+  };
 
   useEffect(() => {
     if (state.status === 'signed-in' && state.profile) {
@@ -46,9 +69,6 @@ function App() {
           <p className="font-serif text-sm tracking-[0.4em] text-[#FF7A45] uppercase">
             Panic at the Court
           </p>
-          <p className="mt-1 text-[10px] tracking-[0.3em] text-[#FDF8F5]/50 uppercase">
-            Entering The Arena
-          </p>
         </div>
       </div>
     );
@@ -61,17 +81,14 @@ function App() {
   if (!state.profile) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#0F0402] px-4">
-        <div className="relative w-full max-w-md overflow-hidden rounded-3xl border border-[#FF7A45]/30 bg-[#1A0A06]/90 p-8 text-center shadow-2xl backdrop-blur-2xl">
+        <div className="relative w-full max-w-md rounded-3xl border border-[#FF7A45]/30 bg-[#1A0A06]/90 p-8 text-center shadow-2xl backdrop-blur-2xl">
           <h2 className="font-serif text-2xl font-bold tracking-tight text-[#FDF8F5]">
             Akun Belum Terdaftar
           </h2>
-          <p className="mt-2 text-sm leading-relaxed text-[#FDF8F5]/60">
-            Akun Anda belum tersinkronisasi. Silakan hubungi Master Admin.
-          </p>
           <button
             type="button"
             onClick={signOut}
-            className="mt-6 w-full rounded-full border border-white/20 bg-white/5 py-3 text-xs uppercase tracking-widest text-[#FDF8F5] transition hover:bg-white/10"
+            className="mt-6 w-full rounded-full border border-white/20 bg-white/5 py-3 text-xs uppercase tracking-widest text-[#FDF8F5]"
           >
             Keluar Aplikasi
           </button>
@@ -82,9 +99,19 @@ function App() {
 
   const currentUserIdent = (state.profile as any).email || state.profile.username || '';
 
+  // 1. JIKA MEMBUKA HALAMAN KEUANGAN KAS
+  if (isFinancePage) {
+    return (
+      <FinancePage
+        currentUsername={state.profile.username}
+        onBack={closeFinancePage}
+      />
+    );
+  }
+
+  // 2. TAMPILAN UTAMA (KLASEMEN & PLAYER CARDS)
   return (
     <div className="min-h-screen bg-transparent text-[#FDF8F5]">
-      {/* Tombol Tab Navigasi */}
       <div className="fixed top-4 right-6 z-50 flex items-center gap-2 bg-black/80 backdrop-blur-md border border-white/20 px-3 py-1.5 rounded-full shadow-2xl">
         <button
           type="button"
@@ -113,7 +140,11 @@ function App() {
       </div>
 
       {currentView === 'leaderboard' ? (
-        <LeaderboardPage profile={state.profile} onSignOut={signOut} />
+        <LeaderboardPage
+          profile={state.profile}
+          onSignOut={signOut}
+          onOpenFinance={openFinancePage}
+        />
       ) : (
         <PlayerCardsView
           players={players}
