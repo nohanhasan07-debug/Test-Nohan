@@ -12,19 +12,23 @@ function App() {
   const { state, signIn, signUp, signOut } = useAuth();
 
   const [currentView, setCurrentView] = useState<'leaderboard' | 'cards'>('leaderboard');
-  const [isFinancePage, setIsFinancePage] = useState(false);
+  const [isFinancePage, setIsFinancePage] = useState(
+    typeof window !== 'undefined' && window.location.pathname === '/finance'
+  );
   const [players, setPlayers] = useState<Player[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
 
-  // Dukungan Tombol Back di Browser
+  // Dukungan Tombol Back di Browser & Refresh Halaman
   useEffect(() => {
     const handlePopState = () => {
       setIsFinancePage(window.location.pathname === '/finance');
     };
+
     window.addEventListener('popstate', handlePopState);
     if (window.location.pathname === '/finance') {
       setIsFinancePage(true);
     }
+
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
@@ -34,7 +38,8 @@ function App() {
   };
 
   const closeFinancePage = () => {
-    window.history.back();
+    window.history.pushState(null, '', '/');
+    setIsFinancePage(false);
   };
 
   useEffect(() => {
@@ -99,7 +104,7 @@ function App() {
 
   const currentUserIdent = (state.profile as any).email || state.profile.username || '';
 
-  // 1. JIKA MEMBUKA HALAMAN KEUANGAN KAS
+  // 1. TAMPILAN HALAMAN KEUANGAN KAS
   if (isFinancePage) {
     return (
       <FinancePage
